@@ -1,0 +1,13 @@
+{
+  "name": "avn-cc-plugins",
+  "owner": {
+    "name": "AVN Creative Consulting"
+  },
+  "plugins": [
+    {
+      "name": "make-UI",
+      "source": "./make-UI",
+      "description": "Build production-grade, multi-screen UI prototypes and functional product experiences. Two build paths: SnowUI design system and shadcn/ui component assembly. Includes accessibility, code review, and Playwright testing gates."
+    }
+  ]
+}

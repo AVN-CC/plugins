@@ -1,0 +1,8 @@
+{
+  "name": "make-UI",
+  "version": "1.0.0",
+  "description": "Build production-grade, multi-screen UI prototypes and functional product experiences. Two build paths: SnowUI design system (HTML prototypes → React) and shadcn/ui component assembly. Includes accessibility, code review, and Playwright testing gates. Built for digital health clinics on Canvas Medical.",
+  "author": {
+    "name": "AVN Creative Consulting"
+  }
+}

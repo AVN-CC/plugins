@@ -1,0 +1,71 @@
+[
+  {
+    "name": "healthcare-dashboard",
+    "prompt": "Build a healthcare CRM dashboard with patient list, upcoming appointments, and KPI cards",
+    "assertions": [
+      "Output contains at least 3 KPI cards with realistic healthcare metrics",
+      "Uses SnowUI 3-column dashboard layout (sidebar + content + right bar)",
+      "Patient table has 5-8 rows with diverse, realistic names and medical data",
+      "All spacing values are multiples of 4px",
+      "Color values use opacity system (rgba not hardcoded grays)",
+      "Sidebar contains navigation items relevant to healthcare",
+      "Typography uses Inter font family throughout",
+      "KPI values use proper formatting ($, commas, percentages)"
+    ]
+  },
+  {
+    "name": "auth-flow-multi-screen",
+    "prompt": "Create an authentication flow for a clinic portal with login, registration, and forgot password",
+    "assertions": [
+      "Produces at least 3 separate screens (login, register, forgot password)",
+      "Screen inventory presented before building",
+      "Navigation between screens works (links/routing)",
+      "Auth cards use centered single-column layout (480px max-width)",
+      "Form inputs use SnowUI Input component specs (44px or 64px height)",
+      "Buttons use SnowUI Button specs (filled style, full width)",
+      "Social login options present on login screen",
+      "Error states shown or documented for form validation",
+      "Shared layout elements consistent across screens"
+    ]
+  },
+  {
+    "name": "settings-page",
+    "prompt": "Build a settings page with sidebar navigation and profile section",
+    "assertions": [
+      "2-column layout: settings sidebar + content panel",
+      "Sidebar navigation with active state indicator (Black/4% fill)",
+      "At least 3 settings categories in sidebar",
+      "Profile section has form inputs for name, email, avatar",
+      "Form layout matches SnowUI form composition (gaps are multiples of 4px)",
+      "Save/cancel action buttons present",
+      "Section headers use correct typography scale"
+    ]
+  },
+  {
+    "name": "ecommerce-product-list",
+    "prompt": "Build an eCommerce product management page with a data table, filters, and bulk actions",
+    "assertions": [
+      "Table component with header row, 5-8 data rows, function bar",
+      "Function bar includes search, filter, and action buttons",
+      "Table cells include varied types: text, badge (status), currency, image placeholder",
+      "Pagination present at bottom of table",
+      "Column headers use 12px/400 Black/40% as per SnowUI spec",
+      "Hover-only action buttons on data rows",
+      "Realistic product names and prices (not lorem ipsum)"
+    ]
+  },
+  {
+    "name": "admin-portal-full",
+    "prompt": "Build a complete admin portal with dashboard, user management, and settings — functional navigation between all sections",
+    "assertions": [
+      "Screen inventory includes at least 4 screens",
+      "Shared layout shell (sidebar + header) consistent across all screens",
+      "Dashboard screen has KPI cards and at least one chart or table",
+      "User management screen has a data table with user records",
+      "Settings screen has categorized form panels",
+      "Sidebar navigation highlights active section",
+      "All screens accessible via working navigation",
+      "No screen is a dead end (can always navigate back)"
+    ]
+  }
+]
