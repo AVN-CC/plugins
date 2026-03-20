@@ -1,0 +1,52 @@
+[
+  {
+    "name": "figma-full-extraction",
+    "prompt": "Extract the full design system from the currently open Figma file",
+    "assertions": [
+      "Produces a tokens.md with at least one color collection and one spacing collection",
+      "Each token has values for all available modes",
+      "Color values are valid hex or rgba format",
+      "Spacing values are multiples of 4 (or the detected grid unit)",
+      "Produces a component-states.md with at least 3 component types",
+      "Each component has Default and at least one interactive state",
+      "No placeholder or TODO markers in final output",
+      "Output files match the make-UI reference format structure",
+      "Extraction metadata (source, date, pipeline) present at top of each file"
+    ]
+  },
+  {
+    "name": "incremental-page-extraction",
+    "prompt": "Extract component patterns from a new SnowUI page and merge into existing references",
+    "assertions": [
+      "Existing reference data is preserved unchanged",
+      "New components are added with correct state matrix format",
+      "New behavioral rules are appended with source attribution",
+      "Conflicts are flagged with [CONFLICT] markers, not silently overwritten",
+      "Token references in new components resolve to existing token names",
+      "Post-merge diff shows only additions, no deletions of existing content"
+    ]
+  },
+  {
+    "name": "screenshot-extraction",
+    "prompt": "Extract design patterns from a screenshot of a dashboard UI",
+    "assertions": [
+      "Identifies layout pattern (column count, sidebar presence)",
+      "Extracts approximate color palette (at least 3 colors)",
+      "Identifies component types present (card, table, button, etc.)",
+      "Uncertain values marked with [approximate]",
+      "Output is a valid reference file, not raw notes",
+      "If existing token table loaded, maps colors to nearest tokens"
+    ]
+  },
+  {
+    "name": "non-snowui-extraction",
+    "prompt": "Extract design tokens from a non-SnowUI Figma file (e.g., Material Design, Ant Design)",
+    "assertions": [
+      "Produces tokens.md even when token names differ from SnowUI conventions",
+      "Maps foreign token naming to semantic categories (background, text, border)",
+      "Does not assume SnowUI-specific patterns (opacity hierarchy, 4-mode system)",
+      "Component states extracted even with different state naming conventions",
+      "Output schemas are generic, not SnowUI-hardcoded"
+    ]
+  }
+]
