@@ -153,6 +153,61 @@ On re-login, restore:
 
 ---
 
+## Sidebar
+
+- **Width:** min 212px, max 40% page width
+- **Sections (top to bottom):** Profile avatar → Tab group (All, Favorite, Recent) → Nav groups → Logo
+- **Active item:** fill `Black/4%`, radius 12
+- **Tab states:** Active text=`Black/40%`, Inactive text=`Black/20%`
+- **Drag-to-sort:** Items can be reordered within their category via drag
+- **Collapse:** Sidebar can collapse to icon-only strip. State persists across sessions.
+- **Directory behavior:**
+  - **Simple directory:** Click = expand/collapse inline (accordion style)
+  - **Complex directory:** Click = navigate to directory page, sub-items shown in content area
+
+---
+
+## Add Data Modal
+
+- **Trigger:** "Add" button in table function bar
+- **Layout:** Modal with form fields matching table columns
+- **Required fields:** Marked with asterisk (*)
+- **Validation:** Same onBlur pattern as all forms
+- **Submit:** Creates row + triggers success notification ("Done")
+- **Cancel:** Closes modal, no data saved
+
+---
+
+## Filter & Sort
+
+- **Filter:** Dropdown menus per column. Multiple filters stack (AND logic). Active filters shown as removable tags above table.
+- **Sort:** Click column header to toggle ascending/descending/none. Visual indicator: chevron up/down.
+- **Keyboard:** `Cmd+C` = sort ascending, `Cmd+D` = sort descending (table context)
+- **Persistence:** Active filters and sorts persist within session
+
+---
+
+## Block/Widget Patterns
+
+- **Hover-to-reveal:** Action buttons (edit, delete, more) appear only on block hover
+- **"Select all" checkbox:** Hidden until cursor enters the content block area
+- **Reorder:** Drag handle appears on hover, drag to reposition blocks
+
+---
+
+## Data Formats
+
+- Time < 7 days: relative ("5 minutes ago", "2 days ago")
+- Time >= 7 days: absolute ("Mar 15" or "Mar 15, 2026")
+- Numbers: comma-separated thousands (48,291)
+- Currency: `$X,XXX.XX`, negative in `Secondary/Indigo`
+- Truncation: ellipsis + tooltip reveal on hover
+- Empty: dash "—" or hide field, never "null" or "N/A"
+
+See `references/data-formats.md` for full rules.
+
+---
+
 ## Layout Modes
 
 | Mode | Panels | Content max-width |
@@ -162,3 +217,16 @@ On re-login, restore:
 | One column | Content only | 1200px |
 
 Dynamic scaling: use `rem`/`em`, not `px`. Text, line-height, spacing, radius, shadows all in relative units.
+
+---
+
+## Component States (Summary)
+
+8 universal states: Default, Hover, Focus, Active, Disabled, Error, In Progress, Done.
+
+- **Disabled:** Always opacity 0.4 on the entire container
+- **Focus ring:** `rgba(0,0,0,0.04)` 0,0 blur-0 spread-4
+- **Error:** `Secondary/Red` stroke + error text below field (pushes content down)
+- **Hover-reveal:** Table actions, card actions, select-all checkbox — hidden until hover
+
+See `references/component-states.md` for the full 18-component matrix.

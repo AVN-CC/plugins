@@ -67,23 +67,55 @@ Check:
 **Tool:** `preview_eval` with computed styles
 
 ```javascript
-// Check opacity levels on secondary text
-const secondaryText = document.querySelectorAll('[class*="secondary"], [class*="label"], [class*="caption"]');
-const results = Array.from(secondaryText).map(el => ({
-  text: el.textContent.substring(0, 30),
-  color: getComputedStyle(el).color,
-  opacity: getComputedStyle(el).opacity
-}));
-JSON.stringify(results, null, 2);
+// Check text color tiers — ONLY 3 valid Black opacities for text: 1.0, 0.4, 0.2
+const textEls = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, label, td, th');
+const results = [];
+const badOpacities = [];
+for (const el of textEls) {
+  if (!el.textContent?.trim()) continue;
+  const color = getComputedStyle(el).color;
+  const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  if (match) {
+    const alpha = match[4] ? parseFloat(match[4]) : 1.0;
+    const isBlackText = match[1] === '0' && match[2] === '0' && match[3] === '0';
+    if (isBlackText && ![1.0, 0.4, 0.2].some(v => Math.abs(alpha - v) < 0.05)) {
+      badOpacities.push({ text: el.textContent.substring(0, 30), alpha, color });
+    }
+  }
+}
+JSON.stringify({ badOpacities: badOpacities.slice(0, 10) });
+```
+
+```javascript
+// Check for hardcoded grays (should use Black/* opacity tokens instead)
+const allEls = document.querySelectorAll('*');
+const hardcodedGrays = [];
+const grayRgbs = ['rgb(102, 102, 102)', 'rgb(153, 153, 153)', 'rgb(204, 204, 204)',
+                   'rgb(51, 51, 51)', 'rgb(170, 170, 170)', 'rgb(128, 128, 128)'];
+for (const el of allEls) {
+  const s = getComputedStyle(el);
+  if (grayRgbs.includes(s.color) || grayRgbs.includes(s.backgroundColor)) {
+    hardcodedGrays.push({ tag: el.tagName, class: el.className?.toString().substring(0, 40),
+      color: s.color, bg: s.backgroundColor });
+  }
+}
+JSON.stringify({ count: hardcodedGrays.length, samples: hardcodedGrays.slice(0, 5) });
 ```
 
 Check:
 - [ ] Primary text: opacity 1.0 (or rgba with alpha 1)
-- [ ] Secondary text: opacity 0.4 (or rgba with alpha 0.4)
-- [ ] Tertiary/disabled: opacity 0.2
+- [ ] Secondary text: opacity 0.4 (or rgba with alpha 0.4) — labels, captions, chart axes
+- [ ] Placeholder text: opacity 0.2 — input hints only
+- [ ] NO text at opacity 0.8 or 0.6 (these don't exist in SnowUI)
 - [ ] Background fills match token values (Background/1 = #ffffff, Background/2 = #f9f9fa)
-- [ ] Borders use Black/10% (rgba(0,0,0,0.1))
-- [ ] Accent colors from the correct palette
+- [ ] Borders use Black/10% (rgba(0,0,0,0.1)) — NOT hardcoded gray
+- [ ] Input default stroke: Black/20% (NOT Black/40%, which is hover/focus)
+- [ ] No hardcoded grays (#666, #999, #ccc) — use Black/* opacity tokens
+- [ ] Status badges use same Secondary/* token for bg (10% opacity) and text (100%)
+- [ ] Filled button text is white (#ffffff), not bound to White/100%
+- [ ] Icon and adjacent text share the same color token
+
+See `references/color-system-qa.md` for complete ground-truth rules.
 
 ### 5. WCAG AA Contrast
 **Tool:** `preview_eval` with contrast calculation

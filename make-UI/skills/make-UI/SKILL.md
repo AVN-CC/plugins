@@ -88,7 +88,10 @@ Read these reference files from this skill's `references/` directory:
 3. `blocks-index.md` — page-level composition patterns
 4. `tokens.md` — complete token system (131 variables, all modes)
 5. `composition-rules.md` — 10 atomic composition rules with designer quotes
-6. `interaction-patterns.md` — state management and transitions
+6. `interaction-patterns.md` — state management, transitions, sidebar, data formats
+7. `color-system-qa.md` — ground-truth color rules (text tiers, icon rules, dark mode, badges)
+8. `component-states.md` — 8-state matrix for 18 component types
+9. `data-formats.md` — time display, date/number formats, truncation, empty states
 
 **For deeper specs**: Read the full pattern doc from the Design corpus. See `assets.md` for access instructions.
 

@@ -129,11 +129,37 @@ Structure, spacing, typography, and radius stay identical between modes. Only fi
 > "In SnowUI, we use variables to control color, spacing, icon size, and corner radius. These are key parts of the design system."
 
 ```
-Light -> Dark changes:
-  Black/100% (#000000) -> White (#ffffff)
-  Background/1 (#ffffff) -> #333333
-  Background/2 (#f9f9fa) -> rgba(255,255,255,0.04)
-  Primary button (#000000) -> Secondary/Indigo (#adadfb)
+Light -> Dark token swaps:
+  Black/100% (#000000)    -> White (#ffffff)       — text, icons
+  Black/10%  (10% black)  -> 15% white             — dividers (asymmetric!)
+  Black/4%   (4% black)   -> 10% white             — subtle bg (asymmetric!)
+  Background/1 (#ffffff)  -> #333333               — page bg
+  Background/2 (#f9f9fa)  -> rgba(255,255,255,0.04)— cards
+  Primary (alias)         -> Secondary/Indigo (#adadfb) — buttons, active states
+
+CRITICAL: Primary is an ALIAS, not a fixed color:
+  SnowUI-Light: -> Black/100% (#000000)
+  SnowUI-Dark:  -> Secondary/Indigo (#adadfb)
+  iOS-Light:    -> Secondary/Blue (#007aff)
+  iOS-Dark:     -> Secondary/Blue (#0a84ff)
+
+Filled button text is hardcoded #ffffff (NOT White/100%).
+White/100% would invert to black in dark mode — wrong on an indigo button.
+
+STATIC backgrounds (bg-4 #edeefc, bg-5 #e6f1fd) do NOT change in dark.
+Text on these surfaces: use StaticBlack/*, NOT Black/*.
+Black/* inverts to white → invisible on light surface.
+CSS: define --static-black-100: rgba(0,0,0,1) that never changes in [data-theme="dark"].
+
+TEXT ON COLORED/STATIC SURFACES — decision tree:
+  Primary/Secondary fill (buttons, toggles, checkboxes, badges):
+    → Hardcoded #ffffff. NEVER White/100%.
+  Hardcoded black surface (tooltip #000000 @ 0.8):
+    → Hardcoded #ffffff or StaticWhite. NEVER White/100%.
+  STATIC backgrounds (bg-4 #edeefc, bg-5 #e6f1fd):
+    → StaticBlack/*. NEVER Black/*.
+  Inverting bg (Black/80%, Background/*):
+    → White/100% or Black/100% — both sides invert together = safe.
 
 Structure stays identical: same padding, gap, radius, font sizes.
 ```

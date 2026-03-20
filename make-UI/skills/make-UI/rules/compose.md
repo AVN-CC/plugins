@@ -54,8 +54,19 @@ Same sidebar. Content fills remaining width. No right bar. For settings, detail 
 ### Single Column
 Auth pages, mobile layouts. Centered content card. Max-width 480px typically.
 
-### Mobile (375×812)
-Bottom tab bar (56px). Top status bar. Content scrolls. Cards stack vertically.
+### Mobile (393×852)
+- Content width: 361px (16px padding each side)
+- Bottom tab bar: floating pill, radius 80, fill White/4%, height ~97px
+- Active tab icon: Black/100% solid. Inactive: Black/100% with 0.08 node opacity secondary fill.
+- Auth mobile: 40px side margins (content 313px), no bottom tab bar
+- Status bar: iOS native (98-109px nav area)
+- Cards stack vertically. Gap 16px.
+
+### AI Chat Layout
+- Desktop: Sidebar 276px + Content 1072px + Right 92px = 1440px
+- Input bar: glassmorphism (White @ 0.8 + backdrop-blur 40px + drop-shadow)
+- Rich content (code, tables, images): 60px left indent past avatar
+- Mobile FAB: solid black 56x56, bottom-right (x=325, y=682)
 
 ## Composition Patterns
 
@@ -117,13 +128,35 @@ Container(480px, pad=40, gap=24, radius=24, fill=Background/1)
 ### Colors (SnowUI-Light)
 - Background/1: #ffffff (page)
 - Background/2: #f9f9fa (cards, sections)
-- Background/4: #edeefc (accent card purple)
-- Background/5: #e6f1fd (accent card blue)
+- Background/4: #edeefc (accent card purple — STATIC in SnowUI dark mode)
+- Background/5: #e6f1fd (accent card blue — STATIC in SnowUI dark mode)
 - Black/100%: #000000 (primary text)
 - Black/40%: rgba(0,0,0,0.4) (secondary text)
-- Black/10%: rgba(0,0,0,0.1) (borders)
+- Black/20%: rgba(0,0,0,0.2) (placeholder text, input default stroke)
+- Black/10%: rgba(0,0,0,0.1) (borders, dividers)
 - Black/4%: rgba(0,0,0,0.04) (hover, active backgrounds)
-- Primary: → Black/100% (SnowUI-Light), → Secondary/Indigo (SnowUI-Dark)
+- Primary: alias → Black/100% (SnowUI-Light), → Secondary/Indigo (SnowUI-Dark)
+
+### Dark Mode Critical Rules
+- Primary alias changes: buttons/active states become indigo (#adadfb), NOT black
+- Filled button text: hardcoded #ffffff (NOT White/100% — would invert to black)
+- Black/10% → 15% white in dark (asymmetric boost for visibility)
+- Black/4% → 10% white in dark (asymmetric boost for visibility)
+- Background/4, Background/5: stay SAME hex in SnowUI dark mode
+- SnowUI secondaries: STATIC (same pastel hex in light and dark)
+- Status badges: same token for bg (10% opacity) and text (100%) — works in both modes
+
+### Status Badge Colors
+- Purple: `Secondary/Purple` #b899eb (In Progress)
+- Green: `Secondary/Green` #71dd8c (Completed)
+- Blue: `Secondary/Blue` #7dbbff (In Transit)
+- Yellow: `Secondary/Yellow` #ffcc00 (Pending)
+- Pattern: bg at 10% node opacity + text at 100% — always same token
+
+### Chart Colors (SnowUI Pastel Palette)
+Series colors: Secondary/Indigo (#adadfb), Secondary/Cyan (#a0bce8), Secondary/Mint (#6be6d3),
+Secondary/Blue (#7dbbff), Secondary/Purple (#b899eb), Secondary/Green (#71dd8c)
+All chart text uniformly Black/40% at 12px/400.
 
 ### Spacing
 4, 8, 12, 16, 20, 24, 28, 40, 48px. Master grid gap: 28px.

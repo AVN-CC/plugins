@@ -57,6 +57,17 @@ Source: `docs/patterns/raw/design-tokens.json` + `docs/patterns/design-system-fo
 | Logo 1 | `#4c98fd` | `#4c98fd` | alias: Primary | alias: Primary |
 | Logo 2 | `#4f507f` | `#ededff` | `#4f507f` | `#ededff` |
 
+### iOS Semantic Label Tokens (used in mobile patterns)
+
+| Token | Light | Dark | Maps To |
+|-------|-------|------|---------|
+| Labels/Primary | `rgba(0,0,0,1)` | `rgba(255,255,255,1)` | ≈ Black/100% |
+| Labels/Secondary | `rgba(0,0,0,0.4)` | `rgba(255,255,255,0.4)` | ≈ Black/40% |
+| Labels/Tertiary | `rgba(0,0,0,0.2)` | `rgba(255,255,255,0.2)` | ≈ Black/20% |
+| Colors/Blue | `#007AFF` | `#0A84FF` | iOS system blue |
+| Fills/Tertiary | `rgba(120,120,128,0.12)` | — | iOS search field bg |
+| Overlays/Default | `rgba(0,0,0,0.2)` | — | Alert dialog overlay |
+
 ### Static Color Styles (do NOT change with theme)
 
 | Style | Hex | Opacity |
