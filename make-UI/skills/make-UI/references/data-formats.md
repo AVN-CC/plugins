@@ -1,45 +1,123 @@
 # SnowUI Data Format Rules
 
-How to display time, dates, numbers, and localized content. Source: `docs/patterns/interactive-guidance.md` Section 16 (Data Format).
+How to display time, dates, numbers, and localized content. Source: `docs/patterns/interactive-guidance.md` Section 19 (Data Formats).
+
+> "Written after referring to Atlassian Design and Material System."
 
 ---
 
-## Time Display (Relative → Absolute)
+## Relative Time — Past (Commonly Used)
 
-| Elapsed | Display | Example |
-|---------|---------|---------|
-| < 1 minute | "Just now" | Just now |
-| 1-59 minutes | "N minutes ago" | 5 minutes ago |
-| 1-23 hours | "N hours ago" | 3 hours ago |
-| 1-6 days | "N days ago" | 2 days ago |
-| 7-29 days | "MMM DD" | Mar 15 |
-| 30+ days | "MMM DD, YYYY" | Mar 15, 2026 |
+| Threshold | Display Format |
+|-----------|---------------|
+| < 1 minute | "Just now" |
+| < 1 hour | "{n} minutes ago" |
+| < 12 hours | "{n} hours ago" |
+| > 12 hours (AM) | "Today, {time} AM" |
+| > 12 hours (PM) | "Today, {time} PM" |
+| > 1 day | "Yesterday" |
+| > 2 days | "Feb 2, 2026" (absolute date) |
 
-**Rule:** Always use relative time for recent content (< 7 days). Switch to absolute dates after 7 days.
+---
+
+## Relative Time — Verbose Past
+
+| Threshold | Display |
+|-----------|---------|
+| < 1 minute | "Just now" |
+| ~1 minute | "A minute ago" |
+| ~1 hour | "1 hour ago" |
+| ~2.5 hours | "2 hr 32 min ago" |
+| Yesterday | "Yesterday, 8:00 AM" |
+| ~1 day | "1 day ago" |
+| ~1 week | "1 week ago" |
+
+---
+
+## Relative Time — Future
+
+| Threshold | Display |
+|-----------|---------|
+| < 1 minute | "Shortly" |
+| ~1 minute | "In 1 minute" |
+| ~1 hour | "In 1 hour" |
+| ~2.5 hours | "In 2 hr 32 min" |
+| Next day | "Tomorrow, 8:00 AM" |
+| ~1 day | "In 1 day" |
+| ~1 week | "In 1 week" |
 
 ---
 
 ## Date Formats
 
-| Context | Format | Example |
-|---------|--------|---------|
-| Inline date | `MMM DD, YYYY` | Mar 20, 2026 |
-| Date picker display | `MM/DD/YYYY` | 03/20/2026 |
-| Table date column | `MMM DD, YYYY` | Mar 20, 2026 |
-| Chart axis | `MMM DD` or `MMM` | Mar 20, Mar |
-| Timestamp | `MMM DD, YYYY HH:MM AM/PM` | Mar 20, 2026 2:30 PM |
+| Format | Example |
+|--------|---------|
+| 24h time | `20:00` |
+| 12h time | `8:00 AM` |
+| Today + time | `Today, 11:59 AM` |
+| Date + time | `Feb 2, 8:00 AM` |
+| Date only | `Feb 2, 2026` |
+| Full date + time | `Feb 2, 2026, 8:00 AM` |
+| ISO 8601 | `20/02/2026, 08:59:59 AM` |
+| Input format | `MM/DD/YYYY` |
 
 ---
 
-## Time Formats
+## Date and Time Range Formats
 
-| Context | Format | Example |
-|---------|--------|---------|
-| 12-hour (default) | `H:MM AM/PM` | 2:30 PM |
-| Duration | `Xh Ym` | 2h 30m |
-| Timer | `MM:SS` | 05:30 |
+| Format | Example |
+|--------|---------|
+| Time range (same day) | `20:00 - 00:00` |
+| Time range (12h) | `8:00 - 11:59 AM` |
+| Cross-day range | `Feb 2, 11:59 AM - Mar 3, 12:00 PM` |
+| Date range (same month) | `Feb 2 - 10, 2026` |
+| Date range (cross-month) | `Feb 2, 2026 - Mar 3, 2026` |
+| Full range | `Feb 2, 2022, 11:59 AM - Mar 3, 2026, 12:00 PM` |
+| ISO range | `20/02/2026, 08:59:59 AM - 25/02/2026, 12:00:00 PM` |
+| Input format | `MM/DD/YYYY - MM/DD/YYYY` |
 
-**Auto-correction rule:** If user enters "13" in hour field, auto-switch to PM and display "01".
+---
+
+## Month Formats
+
+| Full | Abbreviated |
+|------|-------------|
+| January | Jan |
+| February | Feb |
+| March | Mar |
+| April | Apr |
+| May | May |
+| June | Jun |
+| July | Jul |
+| August | Aug |
+| September | Sep |
+| October | Oct |
+| November | Nov |
+| December | Dec |
+
+---
+
+## Weekday Formats
+
+| Full | Abbreviated |
+|------|-------------|
+| Monday | Mon |
+| Tuesday | Tue |
+| Wednesday | Wed |
+| Thursday | Thu |
+| Friday | Fri |
+| Saturday | Sat |
+| Sunday | Sun |
+
+---
+
+## Time Unit Formats
+
+| Full | Medium | Short |
+|------|--------|-------|
+| Hour | hr | h |
+| Minute | min | m |
+| Second | sec | s |
 
 ---
 
@@ -55,9 +133,13 @@ How to display time, dates, numbers, and localized content. Source: `docs/patter
 
 ---
 
-## Locale Support
+## Time Auto-Correction
 
-SnowUI supports English and Chinese locales:
+If user enters "13" in hour field, auto-switch to PM and display "01".
+
+---
+
+## Locale Support
 
 | Element | English | Chinese |
 |---------|---------|---------|
