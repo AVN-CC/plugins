@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart {Code-Connect} — QA Reference</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #2a2a2a;
+    --text: #e5e5e5;
+    --text-muted: #888;
+    --accent: #007aff;
+    --accent-dim: #007aff33;
+    --green: #34c759;
+    --red: #ff3b30;
+    --orange: #ff9500;
+    --indigo: #5856d6;
+    --cyan: #32ade6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0;
+  }
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .layout {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .sidebar {
+    position: sticky;
+    top: 56px;
+    width: 260px;
+    min-width: 260px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    padding: 20px 16px;
+    border-right: 1px solid var(--border);
+  }
+  .sidebar a {
+    display: block;
+    padding: 6px 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .sidebar a:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+  .sidebar a.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .sidebar .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 16px 12px 4px;
+    font-weight: 600;
+  }
+  .content {
+    flex: 1;
+    min-width: 0;
+    padding: 32px 48px 120px;
+  }
+  .content h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .content h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: #fff;
+  }
+  .content h2:first-of-type {
+    border-top: none;
+    margin-top: 32px;
+  }
+  .content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+  .content p {
+    margin-bottom: 12px;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .content ul, .content ol {
+    margin-bottom: 12px;
+    padding-left: 24px;
+    font-size: 14px;
+  }
+  .content li {
+    margin-bottom: 4px;
+  }
+  .content strong {
+    color: #fff;
+    font-weight: 600;
+  }
+  .content em {
+    color: var(--text-muted);
+  }
+  .content code {
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--cyan);
+  }
+  .content pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .content pre code {
+    background: none;
+    padding: 0;
+    color: var(--text);
+  }
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .content th {
+    background: var(--surface);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .content td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  .content tr:hover td {
+    background: var(--surface);
+  }
+  .content blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 8px 16px;
+    margin-bottom: 12px;
+    background: var(--accent-dim);
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+  }
+  .content hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+  /* QA Rule callouts */
+  .content h3[id*="qa-rule"] {
+    background: linear-gradient(135deg, #ff950020, #ff950005);
+    border: 1px solid #ff950040;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--orange);
+  }
+  /* Checkbox styling */
+  .content li input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: var(--accent);
+  }
+  /* Meta info at top */
+  .meta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  /* Color swatches inline */
+  .content td code {
+    font-size: 12px;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .content { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Chart {Code-Connect} — QA Reference</h1>
+  <span class="badge">Pipeline A</span>
+  <span class="badge">5.1MB extracted</span>
+  <span class="badge">11 QA rules</span>
+</div>
+<div class="layout">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="content" id="content"></main>
+</div>
+<script>
+const md = `SOURCE_MD_PLACEHOLDER`;
+
+fetch('./charts-detail-qa.md')
+  .then(r => r.ok ? r.text() : Promise.reject('Failed to load'))
+  .then(render)
+  .catch(() => {
+    // Fallback: inline content
+    document.getElementById('content').innerHTML = '<p style="color:var(--red)">Could not load charts-detail-qa.md. Ensure both files are served from the same directory.</p>';
+  });
+
+function render(text) {
+  // Split off the metadata header
+  const lines = text.split('\n');
+  let metaEnd = 0;
+  let inMeta = false;
+  const metaLines = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith('Source:') || lines[i].startsWith('Extracted:') ||
+        lines[i].startsWith('Pipeline:') || lines[i].startsWith('Scope:') ||
+        lines[i].startsWith('Total raw') || lines[i].startsWith('Cross-referenced')) {
+      metaLines.push(lines[i]);
+      metaEnd = i + 1;
+    }
+  }
+
+  // Find the first --- after metadata
+  let bodyStart = 0;
+  for (let i = metaEnd; i < lines.length; i++) {
+    if (lines[i].trim() === '---') {
+      bodyStart = i + 1;
+      break;
+    }
+  }
+
+  const bodyMd = lines.slice(bodyStart).join('\n');
+
+  // Render markdown
+  marked.setOptions({
+    gfm: true,
+    breaks: false,
+  });
+
+  const html = marked.parse(bodyMd);
+
+  // Build meta block
+  const metaHtml = metaLines.map(l => l.replace(/\*\*/g, '')).join('<br>');
+
+  document.getElementById('content').innerHTML =
+    '<div class="meta">' + metaHtml + '</div>' + html;
+
+  // Build sidebar from h2s
+  const h2s = document.querySelectorAll('.content h2');
+  const sidebar = document.getElementById('sidebar');
+  let sidebarHtml = '<div class="section-label">Sections</div>';
+
+  h2s.forEach((h2, i) => {
+    const id = 'section-' + i;
+    h2.id = id;
+    const text = h2.textContent.replace(/^\d+\.\s*/, '');
+    const num = h2.textContent.match(/^(\d+)\./);
+    const prefix = num ? num[1] + '. ' : '';
+    sidebarHtml += '<a href="#' + id + '">' + prefix + text + '</a>';
+  });
+
+  sidebar.innerHTML = sidebarHtml;
+
+  // Highlight active section on scroll
+  const links = sidebar.querySelectorAll('a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const link = sidebar.querySelector('a[href="#' + entry.target.id + '"]');
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px' });
+
+  h2s.forEach(h2 => observer.observe(h2));
+}
+</script>
+</body>
+</html>

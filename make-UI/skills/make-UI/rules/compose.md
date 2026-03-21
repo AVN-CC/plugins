@@ -78,16 +78,19 @@ Card(Count=2, padding=24, radius=20, fill=Background/4 or Background/5)
 ```
 
 ### Chart Block
+See `rules/charts.md` for complete chart form & assembly rules. Two systems: ChartMotion (static) vs Chart Components (interactive). Never mix.
 ```
 Container(padding=24, gap=24, radius=24, fill=Background/1)
-├── Frame(HORIZONTAL) → Icon(20px) + "Revenue" [14px/600]
-├── Frame(HORIZONTAL, SPACE_BETWEEN)
+├── Header(HORIZONTAL, gap=8) → Icon(20px) + "Revenue" [14px/600]
+├── Stats(HORIZONTAL, SPACE_BETWEEN)
 │   ├── Text(Count=2) → "$58,211" [32px/600] + "Current Week" [12px/400, Black/40%]
 │   └── Legend(HORIZONTAL, gap=16) → [Dot(6px, Black/100%) + "Current" 12px] [Dot(6px, Secondary/Cyan) + "Previous" 12px]
-└── ChartArea(HORIZONTAL, gap=16)
-    ├── YAxis(width=23, 12px/400, Black/40%, LEFT-aligned)
-    ├── GridFrame(FILL) → N rows at 31px, border-bottom: 0.5px Black/10%
-    └── XAxis(12px/400, Black/100%, CENTER-aligned)
+└── ChartMotion(Type=Vertical, HORIZONTAL, gap=16)
+    ├── YAxis(width=25, 12px/400, Black/40%, RIGHT-aligned, VERTICAL SPACE_BETWEEN)
+    ├── Frame(FILL)
+    │   ├── GridLines → N+1 rows, border-bottom: 0.5px Black/4%, baseline Black/20%
+    │   ├── Bars(HORIZONTAL, gap=8, SPACE_BETWEEN, align=MAX) → 28px max-width per bar
+    │   └── XAxis(HORIZONTAL) → "Jan"..."Dec" [12px/400, Black/40%, CENTER]
 ```
 
 ### Table Block
@@ -157,6 +160,7 @@ Container(480px, pad=40, gap=24, radius=24, fill=Background/1)
 Series colors: Secondary/Indigo (#adadfb), Secondary/Cyan (#a0bce8), Secondary/Mint (#6be6d3),
 Secondary/Blue (#7dbbff), Secondary/Purple (#b899eb), Secondary/Green (#71dd8c)
 All chart text uniformly Black/40% at 12px/400.
+CHART tokens (local): Line Corner Radius (2/16/28), Dot Size (4-24px). See `rules/charts.md`.
 
 ### Spacing
 4, 8, 12, 16, 20, 24, 28, 40, 48px. Master grid gap: 28px.

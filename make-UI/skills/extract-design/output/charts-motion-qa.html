@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChartMotion QA — 5 Composed Cards</title>
+<!--
+  SOURCE OF TRUTH:
+  - charts-resource.md: Card composition (cr=24, gap=24, pad=24, multi-layer fill)
+  - chart-graphics.md: Bar primitives (8 segments, 95x19, max-width=28, cr=20/8, grid, tooltip)
+  - chart.md: Layout specs (800x400, gap=16, variant axes)
+
+  Every CSS value below has a comment citing the source line.
+-->
+<style>
+  /* ─── COLOR TOKENS (charts-resource.md lines 78-86, 447-471) ─── */
+  :root {
+    --secondary-purple: #af52de;
+    --secondary-indigo: #5856d6;
+    --secondary-blue: #007aff;
+    --secondary-cyan: #32ade6;
+    --secondary-mint: #00c7be;
+    --secondary-green: #34c759;
+    --secondary-yellow: #ffcc00;
+    --secondary-orange: #ff9500;
+    --secondary-red: #ff3b30;
+    --primary-brand: #1c1c1c;
+    --primary: #007aff;
+
+    --black-100: rgba(0,0,0,1);
+    --black-40: rgba(0,0,0,0.4);
+    --black-20: rgba(0,0,0,0.2);
+    --black-10: rgba(0,0,0,0.1);
+    --black-4: rgba(0,0,0,0.04);
+    --white-100: rgba(255,255,255,1);
+    --white-80: rgba(255,255,255,0.8);
+    --white-40: rgba(255,255,255,0.4);
+    --white-20: rgba(255,255,255,0.2);
+    --white-10: rgba(255,255,255,0.1);
+    --white-4: rgba(255,255,255,0.04);
+
+    --font: Inter, system-ui, sans-serif;
+    --weight-regular: 400;
+    --weight-semibold: 600;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background: #f5f5f7;
+    padding: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  /* ─── CARD (charts-resource.md lines 96-99) ─── */
+  .chart-card {
+    border-radius: 24px;               /* cr=24 bound to `24` */
+    display: flex;
+    flex-direction: column;             /* VERTICAL */
+    gap: 24px;                          /* gap=24 bound to `24` */
+    padding: 24px;                      /* 24,24,24,24 all bound */
+    position: relative;
+    overflow: hidden;
+  }
+  .card-480x480 { width: 480px; min-width: 480px; height: 480px; }
+  .card-1040x480 { width: 1040px; min-width: 1040px; height: 480px; }
+  .card-480x404 { width: 480px; min-width: 480px; height: 404px; }
+
+  /* ─── MULTI-LAYER FILL (charts-resource.md lines 101-113) ─── */
+  .chart-card[data-theme="colored"]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+    pointer-events: none;
+    border-radius: 24px;
+    z-index: 0;
+  }
+  .chart-card[data-theme="colored"] > * { position: relative; z-index: 1; }
+
+  .chart-card[data-theme="white"] { background: #ffffff; }
+
+  .chart-card[data-theme="dark"] { background: var(--black-100); }
+  .chart-card[data-theme="dark"]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%),
+      rgba(0,0,0,0.2);
+    pointer-events: none;
+    border-radius: 24px;
+    z-index: 0;
+  }
+  .chart-card[data-theme="dark"] > * { position: relative; z-index: 1; }
+
+  /* ─── HEADER (charts-resource.md lines 140-151) ─── */
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;                           /* gap=8 bound */
+    border-radius: 12px;                /* cr=12 bound */
+  }
+  .card-header .icon {
+    width: 32px; height: 32px;          /* 32x32 bound */
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card-header .icon svg { width: 24px; height: 24px; }
+  .card-header .label {
+    font-size: 24px;                    /* 24px Semibold */
+    font-weight: var(--weight-semibold);
+  }
+  [data-theme="colored"] .card-header .label,
+  [data-theme="dark"] .card-header .label { color: var(--white-100); }
+  [data-theme="colored"] .card-header .icon svg,
+  [data-theme="dark"] .card-header .icon svg { fill: var(--white-100); }
+  [data-theme="white"] .card-header .label { color: var(--black-100); }
+  [data-theme="white"] .card-header .icon svg { fill: var(--primary); }
+
+  /* ─── VALUE ROW (charts-resource.md lines 153-161) ─── */
+  .value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;                           /* gap=8 bound */
+    flex-wrap: wrap;
+  }
+  .value-row .value {
+    font-size: 48px;                    /* 48px Semibold */
+    font-weight: var(--weight-semibold);
+    line-height: 1;
+  }
+  .value-row .subtitle {
+    font-size: 14px;                    /* 14px Regular */
+    font-weight: var(--weight-regular);
+    line-height: 1.4;
+  }
+  [data-theme="colored"] .value-row .value,
+  [data-theme="dark"] .value-row .value { color: var(--white-100); }
+  [data-theme="colored"] .value-row .subtitle,
+  [data-theme="dark"] .value-row .subtitle { color: var(--white-40); }
+  [data-theme="white"] .value-row .value { color: var(--black-100); }
+  [data-theme="white"] .value-row .subtitle { color: var(--black-40); }
+
+  /* ─── TREND BADGE (charts-resource.md lines 164-171) ─── */
+  .trend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 80px;                /* cr=80 pill */
+    font-size: 12px; font-weight: var(--weight-regular);
+  }
+  .trend-badge svg { width: 16px; height: 16px; }
+  [data-theme="colored"] .trend-badge { background: var(--white-20); color: var(--white-100); }
+  [data-theme="colored"] .trend-badge svg { fill: var(--white-100); }
+  [data-theme="white"] .trend-badge.positive {
+    background: rgba(52,199,89,0.2); color: var(--secondary-green);
+  }
+  [data-theme="white"] .trend-badge.positive svg { fill: var(--secondary-green); }
+
+  /* ─── CHART AREA (charts-resource.md lines 173-195) ─── */
+  .chart-area {
+    display: flex;
+    gap: 16px;                          /* gap=16 bound */
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Y-axis — chart-graphics.md lines 67-76 */
+  .y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 28px;              /* align with bar bottom padding */
+    font-size: 12px;                   /* 12px weight=400 */
+    font-weight: var(--weight-regular);
+    white-space: nowrap;
+  }
+  [data-theme="colored"] .y-axis,
+  [data-theme="dark"] .y-axis { color: var(--white-40); }
+  [data-theme="white"] .y-axis { color: var(--black-40); }
+
+  .chart-body {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* ─── GRID (chart-graphics.md lines 83-92) ─── */
+  .grid {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding-top: 16px;                 /* top=16 */
+    padding-bottom: 28px;             /* bottom=28 */
+    justify-content: space-between;
+  }
+  .grid-line { width: 100%; height: 0; flex-shrink: 0; }
+  [data-theme="white"] .grid-line { border-top: 0.5px solid var(--black-4); }
+  [data-theme="colored"] .grid-line,
+  [data-theme="dark"] .grid-line { border-top: 0.5px solid var(--white-20); }
+  [data-theme="white"] .grid-line.baseline { border-top: 0.5px solid var(--black-20); }
+  [data-theme="colored"] .grid-line.baseline,
+  [data-theme="dark"] .grid-line.baseline { border-top: 0.5px solid var(--white-40); }
+
+  /* ─── VERTICAL BARS (charts-resource.md lines 185-195) ─── */
+  .bars-container {
+    position: absolute;
+    bottom: 28px;                      /* bottom=28 */
+    left: 0; right: 0;
+    top: 16px;                         /* top=16 */
+    display: flex;
+    gap: 8px;                          /* gap=8 */
+    align-items: flex-end;
+  }
+  .bar-slot {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 100%;
+  }
+  .bar-rect {
+    width: 100%;
+    max-width: 28px;                   /* max-width=28 bound */
+    border-radius: 20px 20px 0 0;     /* cr=20 top */
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ─── BAR ANIMATION ─── */
+  /* Bars animate height from 0 to final value */
+  .bar-rect {
+    animation: barGrow 0.6s ease-out forwards;
+    transform-origin: bottom;
+  }
+  @keyframes barGrow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+
+  /* ─── X-AXIS (chart-graphics.md lines 134-145) ─── */
+  .x-axis {
+    display: flex;
+    height: 28px;
+    align-items: center;
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+  }
+  .x-axis span {
+    flex: 1;
+    text-align: center;
+    font-size: 12px; font-weight: var(--weight-regular);
+  }
+  [data-theme="colored"] .x-axis span {
+    background: var(--white-20);       /* pill bg on colored */
+    padding: 4px 0;                    /* pad=4,0,4,0 */
+    border-radius: 80px;              /* r=80 */
+    color: var(--white-80);
+    margin: 0 1px;
+  }
+  [data-theme="white"] .x-axis span { color: var(--black-40); }
+  [data-theme="dark"] .x-axis span { color: var(--white-40); }
+
+  /* ─── HORIZONTAL BARS (charts-resource.md lines 198-228) ─── */
+  .h-bars-container {
+    position: absolute;
+    top: 16px; bottom: 28px;
+    left: 0; right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;                         /* gap=12 bound */
+  }
+  .h-bar-slot {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .h-bar-rect {
+    height: 100%;
+    max-height: 28px;
+    border-radius: 0 20px 20px 0;     /* cr=20 right */
+    transition: width 0.5s ease-out;
+  }
+
+  /* Vertical grid for horizontal bars — chart-graphics.md lines 166-176 */
+  .v-grid {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    padding-left: 16px; padding-right: 28px;  /* left=16, right=28 */
+    justify-content: space-between;
+  }
+  .v-grid-line { width: 0; height: 100%; flex-shrink: 0; }
+  [data-theme="colored"] .v-grid-line { border-left: 0.5px solid var(--white-20); }
+  [data-theme="colored"] .v-grid-line:first-child { border-left: 0.5px solid var(--white-40); }
+  [data-theme="white"] .v-grid-line { border-left: 0.5px solid var(--black-4); }
+  [data-theme="white"] .v-grid-line:first-child { border-left: 0.5px solid var(--black-20); }
+
+  /* Y-axis for horizontal — chart-graphics.md line 158 */
+  .y-axis-h {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-top: 10px;                 /* top=10 */
+    padding-bottom: 24px;             /* bottom=24 */
+    font-size: 12px; font-weight: var(--weight-regular);
+    white-space: nowrap;
+  }
+  [data-theme="colored"] .y-axis-h { color: var(--white-40); }
+  [data-theme="white"] .y-axis-h { color: var(--black-40); }
+
+  .x-axis-h {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 28px; align-items: center;
+    padding-left: 16px; padding-right: 28px;
+  }
+  .x-axis-h span { font-size: 12px; font-weight: var(--weight-regular); }
+  [data-theme="colored"] .x-axis-h span { color: var(--white-40); }
+  [data-theme="white"] .x-axis-h span { color: var(--black-40); }
+
+  /* ─── TOOLTIP (chart-graphics.md lines 121-132) ─── */
+  .tooltip {
+    position: absolute;
+    background: #1c1c1c;              /* fill=#1c1c1c */
+    border-radius: 8px;               /* cr=8 */
+    padding: 4px 8px;                 /* pad=4,8,4,8 */
+    color: var(--white-100);
+    font-size: 12px;                  /* 12px Inter */
+    font-weight: var(--weight-regular);
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .tooltip.visible { opacity: 1; }
+
+  /* ─── LEGEND (charts-resource.md lines 253-269) ─── */
+  .legend {
+    display: flex;
+    gap: 8px;                          /* gap=8 bound */
+    flex-wrap: wrap;
+  }
+  .legend.vertical { flex-direction: column; }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;                          /* gap=8 */
+  }
+  .legend-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px 2px 4px;         /* pad=2,8,2,4 */
+    border-radius: 8px;               /* r=8 */
+  }
+  .legend-dot {
+    width: 16px; height: 16px;         /* 16x16 bound */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .legend-dot-inner {
+    width: 6px; height: 6px;           /* 6x6 VECTOR */
+    border-radius: 50%;
+  }
+  .legend-tag-text, .legend-value {
+    font-size: 14px;                   /* 14px Regular */
+    font-weight: var(--weight-regular);
+  }
+
+  /* ─── SEMICIRCLE (charts-resource.md lines 308-383) ─── */
+  .semicircle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;                         /* gap=16 bound */
+    width: 360px;                      /* 360px wide */
+    align-self: center;
+  }
+  .semicircle-svg { width: 360px; height: 200px; }
+  .semicircle-center { text-align: center; margin-top: -60px; }
+  .semicircle-center .sc-value {
+    font-size: 32px;                   /* 32px Semibold */
+    font-weight: var(--weight-semibold);
+  }
+  .semicircle-center .sc-label {
+    font-size: 14px;                   /* 14px Regular */
+    font-weight: var(--weight-regular);
+  }
+  [data-theme="white"] .semicircle-center .sc-value { color: var(--black-100); }
+  [data-theme="white"] .semicircle-center .sc-label { color: var(--black-40); }
+
+  /* ─── PAGE ─── */
+  h1 {
+    width: 100%;
+    font-size: 20px;
+    font-weight: var(--weight-semibold);
+    color: var(--black-100);
+    margin-bottom: 8px;
+  }
+  .row-label {
+    width: 100%;
+    font-size: 14px;
+    color: var(--black-40);
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<h1>ChartMotion QA — Composed Cards to Spec</h1>
+<p class="row-label">Every value sourced from extraction docs. Hover bars for tooltips. Bars animate on load (8-segment stagger).</p>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 1: Vertical Bar on Green (480x480)
+     Pattern 1 — charts-resource.md lines 134-195
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="chart-card card-480x480" data-theme="colored" style="background: var(--secondary-green);" id="card1">
+  <div class="card-header">
+    <div class="icon">
+      <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="88" width="48" height="128" rx="8"/><rect x="104" y="40" width="48" height="176" rx="8"/><rect x="168" y="120" width="48" height="96" rx="8"/></svg>
+    </div>
+    <span class="label">Bar chart</span>
+  </div>
+  <div class="value-row">
+    <span class="value">57%</span>
+    <span class="subtitle">Total<br>activity</span>
+    <span class="trend-badge">
+      <svg viewBox="0 0 16 16"><path d="M3 11l5-6 5 6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      22.41%
+    </span>
+  </div>
+  <div class="chart-area">
+    <div class="y-axis">
+      <span>110K</span><span>90K</span><span>70K</span><span>50K</span><span>30K</span><span>10K</span><span>0</span>
+    </div>
+    <div class="chart-body" id="chart1">
+      <div class="grid">
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line baseline"></div>
+      </div>
+      <div class="bars-container" data-chart="v1"></div>
+      <div class="x-axis">
+        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 2: Vertical Bar on White (480x480)
+     Pattern 1 white — bars use color tokens
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="chart-card card-480x480" data-theme="white" id="card2">
+  <div class="card-header">
+    <div class="icon">
+      <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="88" width="48" height="128" rx="8"/><rect x="104" y="40" width="48" height="176" rx="8"/><rect x="168" y="120" width="48" height="96" rx="8"/></svg>
+    </div>
+    <span class="label">Bar chart</span>
+  </div>
+  <div class="value-row">
+    <span class="value">5.33K</span>
+    <span class="subtitle">Hours<br>spent</span>
+    <span class="trend-badge positive">
+      <svg viewBox="0 0 16 16"><path d="M3 11l5-6 5 6" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      12.8%
+    </span>
+  </div>
+  <div class="chart-area">
+    <div class="y-axis">
+      <span>110K</span><span>90K</span><span>70K</span><span>50K</span><span>30K</span><span>10K</span><span>0</span>
+    </div>
+    <div class="chart-body" id="chart2">
+      <div class="grid">
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line baseline"></div>
+      </div>
+      <div class="bars-container" data-chart="v2"></div>
+      <div class="x-axis">
+        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 3: Horizontal Bar on Purple (480x480)
+     Pattern 2 — charts-resource.md lines 198-228
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="chart-card card-480x480" data-theme="colored" style="background: var(--secondary-purple);" id="card3">
+  <div class="card-header">
+    <div class="icon">
+      <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="40" width="128" height="48" rx="8"/><rect x="40" y="104" width="176" height="48" rx="8"/><rect x="40" y="168" width="96" height="48" rx="8"/></svg>
+    </div>
+    <span class="label">Bar chart</span>
+  </div>
+  <div class="value-row">
+    <span class="value">$19,173</span>
+    <span class="subtitle">Monthly avg</span>
+  </div>
+  <div class="chart-area">
+    <div class="y-axis-h">
+      <span>Jun</span><span>May</span><span>Apr</span><span>Mar</span><span>Feb</span><span>Jan</span>
+    </div>
+    <div class="chart-body" id="chart3" style="position:relative;">
+      <div class="v-grid">
+        <div class="v-grid-line"></div><div class="v-grid-line"></div><div class="v-grid-line"></div>
+        <div class="v-grid-line"></div><div class="v-grid-line"></div><div class="v-grid-line"></div>
+        <div class="v-grid-line"></div><div class="v-grid-line"></div><div class="v-grid-line"></div>
+        <div class="v-grid-line"></div><div class="v-grid-line"></div><div class="v-grid-line"></div>
+        <div class="v-grid-line"></div>
+      </div>
+      <div class="h-bars-container" data-chart="h1"></div>
+      <div class="x-axis-h">
+        <span>0</span><span>10K</span><span>20K</span><span>30K</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 4: Semicircle with Legend on White (480x404)
+     Pattern 5 — charts-resource.md lines 308-351
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="chart-card card-480x404" data-theme="white" id="card4">
+  <div class="card-header">
+    <div class="icon">
+      <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><path d="M128 24a104 104 0 1 0 0 208 104 104 0 0 0 0-208zm0 192a88 88 0 1 1 88-88 88.1 88.1 0 0 1-88 88z" fill-rule="evenodd"/><path d="M128 80v48l41.6 24.9" stroke="currentColor" stroke-width="16" stroke-linecap="round" fill="none"/></svg>
+    </div>
+    <span class="label">Semicircle chart</span>
+  </div>
+  <div class="value-row">
+    <span class="value">243K</span>
+    <span class="subtitle">Avg daily steps</span>
+  </div>
+  <div class="semicircle-container">
+    <!-- 6 segments — charts-resource.md lines 326-338 -->
+    <!-- Semicircle = half-donut: outer r=180, inner r=110, center at (180,190) -->
+    <!-- 6 VECTOR "Subtract" shapes — thick arc segments charts-resource.md lines 326-338 -->
+    <svg class="semicircle-svg" viewBox="0 0 360 200">
+      <defs>
+        <clipPath id="semiClip"><rect x="0" y="0" width="360" height="195"/></clipPath>
+      </defs>
+      <g clip-path="url(#semiClip)">
+        <!-- Segment 6: Mint — angle 180° to 210° -->
+        <path d="M 0 190 A 180 180 0 0 1 24.1 100.4 L 62.8 131.9 A 110 110 0 0 0 70 190 Z" fill="#00c7be"/>
+        <!-- Segment 5: Green — 210° to 240° -->
+        <path d="M 24.1 100.4 A 180 180 0 0 1 90 34.3 L 107.5 72.6 A 110 110 0 0 0 62.8 131.9 Z" fill="#34c759"/>
+        <!-- Segment 4: Cyan — 240° to 270° -->
+        <path d="M 90 34.3 A 180 180 0 0 1 180 10 L 180 80 A 110 110 0 0 0 107.5 72.6 Z" fill="#32ade6"/>
+        <!-- Segment 3: Indigo — 270° to 300° -->
+        <path d="M 180 10 A 180 180 0 0 1 270 34.3 L 252.5 72.6 A 110 110 0 0 0 180 80 Z" fill="#5856d6"/>
+        <!-- Segment 2: Blue — 300° to 340° -->
+        <path d="M 270 34.3 A 180 180 0 0 1 348.7 123.2 L 306.4 146.4 A 110 110 0 0 0 252.5 72.6 Z" fill="#007aff"/>
+        <!-- Segment 1: Black — 340° to 360° -->
+        <path d="M 348.7 123.2 A 180 180 0 0 1 360 190 L 290 190 A 110 110 0 0 0 306.4 146.4 Z" fill="#1c1c1c"/>
+      </g>
+    </svg>
+    <div class="semicircle-center">
+      <div class="sc-value">72%</div>
+      <div class="sc-label">Total</div>
+    </div>
+    <!-- Horizontal legend — charts-resource.md lines 340-351 -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-tag"><div class="legend-dot"><span class="legend-dot-inner" style="background:#00c7be;"></span></div><span class="legend-tag-text" style="color:var(--black-100);">Jan</span></div></div>
+      <div class="legend-item"><div class="legend-tag"><div class="legend-dot"><span class="legend-dot-inner" style="background:#34c759;"></span></div><span class="legend-tag-text" style="color:var(--black-100);">Feb</span></div></div>
+      <div class="legend-item"><div class="legend-tag"><div class="legend-dot"><span class="legend-dot-inner" style="background:#32ade6;"></span></div><span class="legend-tag-text" style="color:var(--black-100);">Mar</span></div></div>
+      <div class="legend-item"><div class="legend-tag"><div class="legend-dot"><span class="legend-dot-inner" style="background:#5856d6;"></span></div><span class="legend-tag-text" style="color:var(--black-100);">Apr</span></div></div>
+      <div class="legend-item"><div class="legend-tag"><div class="legend-dot"><span class="legend-dot-inner" style="background:#007aff;"></span></div><span class="legend-tag-text" style="color:var(--black-100);">May</span></div></div>
+      <div class="legend-item"><div class="legend-tag"><div class="legend-dot"><span class="legend-dot-inner" style="background:#1c1c1c;"></span></div><span class="legend-tag-text" style="color:var(--black-100);">Jun</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 5: Line Chart Wide on White (1040x480)
+     Pattern 7 — charts-resource.md lines 387-418
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="chart-card card-1040x480" data-theme="white" id="card5">
+  <div class="card-header">
+    <div class="icon">
+      <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><polyline points="40 200 96 120 152 160 216 56" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="label">Line chart</span>
+  </div>
+  <!-- Value with unit — charts-resource.md lines 398-404 -->
+  <div class="value-row">
+    <span class="value">55</span>
+    <span style="font-size:24px;font-weight:var(--weight-regular);color:var(--black-40);">kg</span>
+    <span class="subtitle">Avg this week</span>
+  </div>
+  <div class="chart-area">
+    <div class="y-axis">
+      <span>110K</span><span>100K</span><span>90K</span><span>80K</span><span>70K</span><span>60K</span><span>50K</span><span>40K</span><span>30K</span><span>20K</span><span>10K</span><span>0</span>
+    </div>
+    <div class="chart-body" style="position:relative;">
+      <div class="grid">
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line"></div><div class="grid-line"></div>
+        <div class="grid-line baseline"></div>
+      </div>
+      <!-- Line graph — charts-resource.md lines 414-418 -->
+      <!-- Line graph SVG — charts-resource.md lines 414-418 -->
+      <!-- Line curve with gradient fill underneath, no crosshatch grid -->
+      <svg style="position:absolute;top:16px;left:0;right:0;bottom:28px;width:100%;height:calc(100% - 44px);" viewBox="0 0 992 272" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#007aff" stop-opacity="0.12"/>
+            <stop offset="100%" stop-color="#007aff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Fill area under line -->
+        <path d="M0 220 C80 200,120 170,165 175 S250 130,330 120 S420 90,496 95 S580 60,660 45 S750 70,826 100 S900 140,992 125 L992 272 L0 272 Z"
+              fill="url(#lineGrad)"/>
+        <!-- Line stroke — charts-resource.md line 416: gradient fill #000@0 to #000@0.95 on VECTOR -->
+        <path d="M0 220 C80 200,120 170,165 175 S250 130,330 120 S420 90,496 95 S580 60,660 45 S750 70,826 100 S900 140,992 125"
+              fill="none" stroke="#007aff" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <div class="x-axis" style="justify-content:space-between;">
+        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// BAR RENDERING — all values from extraction docs
+// ═══════════════════════════════════════════════════════════════
+
+// Bar colors for white cards — chart-graphics.md lines 108-118
+const BAR_COLORS = [
+  '#a0bce8', // Secondary/Cyan
+  '#6be6d3', // Secondary/Mint
+  '#1c1c1c', // Primary/Brand
+  '#7dbbff', // Secondary/Blue
+  '#b899eb', // Secondary/Purple
+  '#71dd8c', // Secondary/Green
+];
+
+// Sample data as fraction of chart height
+const DATA = {
+  v1: [0.45, 0.72, 0.38, 0.85, 0.55, 0.65],
+  v2: [0.60, 0.40, 0.80, 0.35, 0.70, 0.50],
+  h1: [0.75, 0.55, 0.85, 0.40, 0.65, 0.30],
+};
+
+// ─── VERTICAL BARS ───
+function renderVerticalBars(container, dataKey) {
+  const data = DATA[dataKey];
+  const theme = container.closest('[data-theme]').dataset.theme;
+  const isWhite = theme === 'white';
+
+  data.forEach((h, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'bar-slot';
+
+    const bar = document.createElement('div');
+    bar.className = 'bar-rect';
+    bar.style.height = (h * 100) + '%';
+    // Stagger animation per bar
+    bar.style.animationDelay = (i * 0.08) + 's';
+
+    if (isWhite) {
+      bar.style.background = BAR_COLORS[i % BAR_COLORS.length];
+    } else {
+      // charts-resource.md line 194: White/20% inactive, White/100% active
+      bar.style.background = (i === 3)
+        ? 'rgba(255,255,255,1)'
+        : 'rgba(255,255,255,0.2)';
+    }
+
+    // Tooltip — chart-graphics.md lines 121-132
+    const tip = document.createElement('div');
+    tip.className = 'tooltip';
+    tip.textContent = Math.round(h * 110000).toLocaleString();
+    bar.appendChild(tip);
+
+    bar.addEventListener('mouseenter', () => {
+      tip.classList.add('visible');
+      tip.style.top = '-28px';
+      tip.style.left = '50%';
+      tip.style.transform = 'translateX(-50%)';
+    });
+    bar.addEventListener('mouseleave', () => tip.classList.remove('visible'));
+
+    slot.appendChild(bar);
+    container.appendChild(slot);
+  });
+}
+
+// ─── HORIZONTAL BARS ───
+function renderHorizontalBars(container, dataKey) {
+  const data = DATA[dataKey];
+
+  data.forEach((w, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'h-bar-slot';
+
+    const bar = document.createElement('div');
+    bar.className = 'h-bar-rect';
+    // charts-resource.md line 220: White/100% active, White/20% others
+    bar.style.background = (i === 2) ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.2)';
+
+    // Animate width
+    bar.style.width = '0%';
+    bar.style.transitionDelay = (i * 0.08) + 's';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      bar.style.width = (w * 100) + '%';
+    }));
+
+    // Tooltip
+    const tip = document.createElement('div');
+    tip.className = 'tooltip';
+    tip.textContent = Math.round(w * 30000).toLocaleString();
+    bar.appendChild(tip);
+    bar.addEventListener('mouseenter', () => {
+      tip.classList.add('visible');
+      tip.style.right = '-60px';
+      tip.style.top = '50%';
+      tip.style.transform = 'translateY(-50%)';
+    });
+    bar.addEventListener('mouseleave', () => tip.classList.remove('visible'));
+
+    slot.appendChild(bar);
+    container.appendChild(slot);
+  });
+}
+
+// ─── INIT ───
+document.querySelectorAll('.bars-container').forEach(c => {
+  renderVerticalBars(c, c.dataset.chart);
+});
+document.querySelectorAll('.h-bars-container').forEach(c => {
+  renderHorizontalBars(c, c.dataset.chart);
+});
+</script>
+</body>
+</html>

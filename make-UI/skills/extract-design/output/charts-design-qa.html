@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart {Code-Connect} — Design QA</title>
+<style>
+  :root {
+    /* SnowUI Token System */
+    --primary: #007AFF;
+    --secondary-indigo: #5856D6;
+    --secondary-red: #FF3B30;
+    --secondary-orange: #FF9500;
+    --secondary-yellow: #FFCC00;
+    --secondary-green: #34C759;
+    --secondary-cyan: #32ADE6;
+    --black-100: #000000;
+    --black-80: rgba(0,0,0,0.8);
+    --black-40: rgba(0,0,0,0.4);
+    --black-20: rgba(0,0,0,0.2);
+    --black-10: rgba(0,0,0,0.1);
+    --black-5: rgba(0,0,0,0.05);
+    --white-100: #FFFFFF;
+    --white-80: rgba(255,255,255,0.8);
+    --white-10: rgba(255,255,255,0.1);
+
+    /* Dark mode surface */
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --border: #2a2a2a;
+    --text: #e5e5e5;
+    --text-muted: #888;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,10,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .badge-blue { background: rgba(0,122,255,0.15); color: var(--primary); }
+  .badge-green { background: rgba(52,199,89,0.15); color: var(--secondary-green); }
+  .badge-indigo { background: rgba(88,86,214,0.15); color: var(--secondary-indigo); }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+
+  .intro {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  .intro strong { color: var(--text); }
+
+  /* Chart Card */
+  .chart-section {
+    margin-bottom: 56px;
+  }
+  .chart-section h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chart-section .specs {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .chart-section .specs span {
+    background: var(--surface);
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .chart-card {
+    background: var(--white-100);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .chart-card.dark {
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+
+  /* 1. Vertical Bar Chart */
+  .vertical-bar-chart {
+    display: flex;
+    gap: 16px;
+    width: 800px;
+    height: 400px;
+  }
+  .y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0 0 28px 0;
+    min-width: 40px;
+    text-align: right;
+  }
+  .y-axis span {
+    font-size: 12px;
+    color: var(--black-40);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+  .chart-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .grid-and-bars {
+    flex: 1;
+    position: relative;
+  }
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .grid-line {
+    height: 1px;
+    background: var(--black-10);
+    width: 100%;
+  }
+  .bars-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: 0 8px;
+  }
+  .bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    position: relative;
+    flex: 1;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 28px;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    transition: opacity 0.2s;
+    cursor: pointer;
+  }
+  .bar:hover .tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  .tooltip {
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--black-80);
+    backdrop-filter: blur(40px);
+    color: white;
+    font-size: 12px;
+    font-weight: 400;
+    padding: 4px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    /* Glass effect: dual fill */
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+  }
+  .x-axis {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 8px;
+  }
+  .x-axis span {
+    font-size: 12px;
+    color: var(--black-40);
+    font-weight: 400;
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Bar styles */
+  .bar-style-1 { background: var(--primary); }
+  .bar-style-2-bg { background: rgba(0,122,255,0.1); border-radius: 8px; }
+  .bar-style-2-fg { background: var(--primary); }
+  .bar-style-4-top { background: var(--black-20); }
+  .bar-style-4-mid { background: var(--secondary-indigo); }
+  .bar-style-4-bot { background: var(--primary); }
+
+  /* 2. Horizontal Bar Chart */
+  .horizontal-bar-chart {
+    display: flex;
+    gap: 16px;
+    width: 800px;
+    height: 400px;
+  }
+  .h-chart-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .h-grid-and-bars {
+    flex: 1;
+    position: relative;
+  }
+  .h-grid-lines {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+  }
+  .h-grid-line {
+    width: 1px;
+    background: var(--black-10);
+    height: 100%;
+  }
+  .h-bars-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 8px 0;
+  }
+  .h-bar-group {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    position: relative;
+  }
+  .h-bar {
+    height: 100%;
+    border-radius: 0 8px 8px 0;
+    background: var(--primary);
+    position: relative;
+    cursor: pointer;
+  }
+  .h-bar:hover .tooltip {
+    opacity: 1;
+  }
+  .h-bar .tooltip {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(28,28,28,0.8);
+    backdrop-filter: blur(40px);
+    color: white;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+  }
+
+  /* 3. Line Chart */
+  .line-chart {
+    display: flex;
+    gap: 16px;
+    width: 800px;
+    height: 400px;
+  }
+  .line-chart-area {
+    flex: 1;
+    position: relative;
+  }
+  .line-grid {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .line-canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* 4. Donut Chart */
+  .donut-container {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .donut-svg {
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+  }
+  .donut-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-label {
+    font-size: 14px;
+    color: var(--black-40);
+  }
+  .legend-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--black-100);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .dark .legend-label { color: rgba(255,255,255,0.4); }
+  .dark .legend-value { color: var(--white-100); }
+
+  /* 5. Semicircle Chart */
+  .semicircle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .semicircle-svg {
+    width: 360px;
+    height: 180px;
+  }
+  .semicircle-legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* 6. Proportion Statistics */
+  .proportion-chart {
+    display: flex;
+    gap: 7px;
+    align-items: flex-end;
+    justify-content: space-between;
+    width: 440px;
+    height: 200px;
+  }
+  .proportion-series {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .proportion-label {
+    font-size: 14px;
+    font-weight: 400;
+  }
+  .proportion-value {
+    font-size: 32px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .proportion-line {
+    height: 2px;
+    border-radius: 1px;
+  }
+  .proportion-lines {
+    display: flex;
+    gap: 2px;
+  }
+  .proportion-line-seg {
+    height: 100px;
+    width: 2px;
+    border-radius: 1px;
+  }
+
+  /* Layout helpers */
+  .row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .col { display: flex; flex-direction: column; gap: 8px; }
+
+  /* Comparison overlay */
+  .compare-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0,122,255,0.4);
+    font-family: inherit;
+  }
+  .compare-toggle:hover { filter: brightness(1.1); }
+
+  .side-by-side {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+  .panel {
+    flex: 1;
+    min-width: 0;
+  }
+  .panel-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* Responsive */
+  .chart-card { overflow-x: auto; }
+
+  /* Token table */
+  .token-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .token-table th {
+    text-align: left;
+    padding: 6px 12px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .token-table td {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Chart {Code-Connect} — Design QA</h1>
+  <span class="badge badge-blue">Pixel-Perfect</span>
+  <span class="badge badge-green">5 Chart Types</span>
+  <span class="badge badge-indigo">SVG from Figma</span>
+</div>
+
+<div class="container">
+
+  <div class="intro">
+    <strong>Source:</strong> Figma file "Chart {Code-Connect}" (LKT5XjsHrCxjVx8YENYZPu)<br>
+    <strong>Pipeline:</strong> A (figma-console Desktop Bridge) — SVG exported via exportAsync<br>
+    <strong>Charts reproduced:</strong> Vertical Bar, Horizontal Bar, Line, Donut (4-segment), Semicircle (4-segment), Proportion Statistics<br>
+    <strong>Tokens:</strong> All fills, radii, spacing, and effects match SnowUI token system bindings
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 1. VERTICAL BAR CHART -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>1. Vertical Bar Chart <span class="badge badge-blue">Interactive</span></h2>
+    <div class="specs">
+      <span>800×400</span>
+      <span>Layout: HORIZONTAL, gap=16</span>
+      <span>Bar width: 28px</span>
+      <span>Corner radius: 8 (bound)</span>
+      <span>Tooltip: glass effect, blur=40</span>
+    </div>
+
+    <div class="chart-card">
+      <div class="vertical-bar-chart">
+        <!-- Y-axis labels -->
+        <div class="y-axis">
+          <span>6,000</span>
+          <span>5,000</span>
+          <span>4,000</span>
+          <span>3,000</span>
+          <span>2,000</span>
+          <span>1,000</span>
+          <span>0</span>
+        </div>
+        <!-- Chart area -->
+        <div class="chart-area">
+          <div class="grid-and-bars">
+            <!-- Grid lines -->
+            <div class="grid-lines">
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+            </div>
+            <!-- Bars with tooltips -->
+            <div class="bars-container">
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:50%"><div class="tooltip">3,000</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:83%"><div class="tooltip">5,000</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:33%"><div class="tooltip">2,000</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:67%"><div class="tooltip">4,000</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:100%"><div class="tooltip">6,000</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:42%"><div class="tooltip">2,500</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:58%"><div class="tooltip">3,500</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:75%"><div class="tooltip">4,500</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:17%"><div class="tooltip">1,000</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:92%"><div class="tooltip">5,500</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:25%"><div class="tooltip">1,500</div></div>
+              </div>
+              <div class="bar-group">
+                <div class="bar bar-style-1" style="height:67%"><div class="tooltip">4,000</div></div>
+              </div>
+            </div>
+          </div>
+          <!-- X-axis -->
+          <div class="x-axis">
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+            <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+            <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bar Style Variants -->
+    <h3 style="margin-top:24px;font-size:14px;color:var(--text-muted);font-weight:600">Bar Style Variants (6 styles)</h3>
+    <div class="row" style="margin-top:12px">
+      <!-- Style 1: Single Solid -->
+      <div class="col">
+        <span style="font-size:11px;color:var(--text-muted)">Style 1 — Single</span>
+        <div style="width:28px;height:120px;background:var(--primary);border-radius:8px 8px 0 0"></div>
+      </div>
+      <!-- Style 2: BG+FG proportional -->
+      <div class="col">
+        <span style="font-size:11px;color:var(--text-muted)">Style 2 — BG+FG</span>
+        <div style="width:28px;height:120px;position:relative">
+          <div style="position:absolute;bottom:0;width:100%;height:100%;background:rgba(0,122,255,0.1);border-radius:8px"></div>
+          <div style="position:absolute;bottom:0;width:100%;height:70%;background:var(--primary);border-radius:8px 8px 0 0"></div>
+        </div>
+      </div>
+      <!-- Style 3: BG full height -->
+      <div class="col">
+        <span style="font-size:11px;color:var(--text-muted)">Style 3 — Full BG</span>
+        <div style="width:28px;height:160px;position:relative">
+          <div style="position:absolute;bottom:0;width:100%;height:100%;background:rgba(0,122,255,0.1);border-radius:8px"></div>
+          <div style="position:absolute;bottom:0;width:100%;height:55%;background:var(--primary);border-radius:8px 8px 0 0"></div>
+        </div>
+      </div>
+      <!-- Style 4: 3-segment stacked -->
+      <div class="col">
+        <span style="font-size:11px;color:var(--text-muted)">Style 4 — Stacked</span>
+        <div style="width:28px;height:120px;display:flex;flex-direction:column">
+          <div style="flex:1;background:var(--black-20);border-radius:8px 8px 0 0"></div>
+          <div style="flex:1;background:var(--secondary-indigo)"></div>
+          <div style="flex:1;background:var(--primary);border-radius:0 0 8px 8px"></div>
+        </div>
+      </div>
+      <!-- Style 5: Side-by-side -->
+      <div class="col">
+        <span style="font-size:11px;color:var(--text-muted)">Style 5 — Side-by-Side</span>
+        <div style="display:flex;gap:2px;align-items:flex-end">
+          <div style="width:14px;height:120px;background:var(--primary);border-radius:8px 8px 0 0"></div>
+          <div style="width:14px;height:85px;background:var(--secondary-indigo);border-radius:8px 8px 0 0"></div>
+        </div>
+      </div>
+      <!-- Style 6: Pill -->
+      <div class="col">
+        <span style="font-size:11px;color:var(--text-muted)">Style 6 — Pill</span>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+          <div style="width:8px;height:40px;background:var(--primary);border-radius:80px"></div>
+          <div style="width:8px;height:50px;background:var(--secondary-indigo);border-radius:80px"></div>
+          <div style="width:8px;height:30px;background:var(--black-20);border-radius:80px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 2. HORIZONTAL BAR CHART -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>2. Horizontal Bar Chart <span class="badge badge-blue">Interactive</span></h2>
+    <div class="specs">
+      <span>800×400</span>
+      <span>Layout: HORIZONTAL, gap=16</span>
+      <span>Bar height: 28px</span>
+      <span>Corner radius: 8</span>
+      <span>Tooltip: #1C1C1C@0.8, blur=40</span>
+    </div>
+
+    <div class="chart-card">
+      <div class="horizontal-bar-chart">
+        <div class="y-axis" style="justify-content:space-around;padding:0">
+          <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+          <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+          <span>Sep</span><span>Oct</span>
+        </div>
+        <div class="h-chart-area">
+          <div class="h-grid-and-bars">
+            <div class="h-grid-lines">
+              <div class="h-grid-line"></div>
+              <div class="h-grid-line"></div>
+              <div class="h-grid-line"></div>
+              <div class="h-grid-line"></div>
+              <div class="h-grid-line"></div>
+              <div class="h-grid-line"></div>
+              <div class="h-grid-line"></div>
+            </div>
+            <div class="h-bars-container">
+              <div class="h-bar-group"><div class="h-bar" style="width:65%"><div class="tooltip">3,900</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:85%"><div class="tooltip">5,100</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:40%"><div class="tooltip">2,400</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:72%"><div class="tooltip">4,300</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:95%"><div class="tooltip">5,700</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:55%"><div class="tooltip">3,300</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:78%"><div class="tooltip">4,700</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:30%"><div class="tooltip">1,800</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:88%"><div class="tooltip">5,300</div></div></div>
+              <div class="h-bar-group"><div class="h-bar" style="width:48%"><div class="tooltip">2,900</div></div></div>
+            </div>
+          </div>
+          <div class="x-axis" style="justify-content:space-between">
+            <span>0</span><span>1,000</span><span>2,000</span><span>3,000</span><span>4,000</span><span>5,000</span><span>6,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 3. LINE CHART -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>3. Line Chart <span class="badge badge-green">Static</span></h2>
+    <div class="specs">
+      <span>800×400</span>
+      <span>Stroke: 2px</span>
+      <span>Line corner: Small=2, Medium=16, Big=28</span>
+      <span>Dot: 8px (Medium tier)</span>
+    </div>
+
+    <div class="chart-card">
+      <div class="line-chart">
+        <div class="y-axis">
+          <span>6,000</span>
+          <span>5,000</span>
+          <span>4,000</span>
+          <span>3,000</span>
+          <span>2,000</span>
+          <span>1,000</span>
+          <span>0</span>
+        </div>
+        <div class="chart-area">
+          <div class="grid-and-bars" style="position:relative">
+            <div class="grid-lines">
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+              <div class="grid-line"></div>
+            </div>
+            <svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" preserveAspectRatio="none" viewBox="-8 -8 716 360">
+              <!-- Line 1: Primary -->
+              <polyline points="8,240 66,170 125,200 183,140 241,100 300,60 358,120 416,90 475,150 533,80 591,110 650,50"
+                fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Line 2: Secondary/Indigo -->
+              <polyline points="8,280 66,250 125,260 183,220 241,200 300,180 358,210 416,190 475,230 533,170 591,200 650,160"
+                fill="none" stroke="#5856D6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Dots Line 1 -->
+              <g fill="#007AFF">
+                <circle cx="8" cy="240" r="4"/><circle cx="66" cy="170" r="4"/>
+                <circle cx="125" cy="200" r="4"/><circle cx="183" cy="140" r="4"/>
+                <circle cx="241" cy="100" r="4"/><circle cx="300" cy="60" r="4"/>
+                <circle cx="358" cy="120" r="4"/><circle cx="416" cy="90" r="4"/>
+                <circle cx="475" cy="150" r="4"/><circle cx="533" cy="80" r="4"/>
+                <circle cx="591" cy="110" r="4"/><circle cx="650" cy="50" r="4"/>
+              </g>
+              <!-- Dots Line 2 -->
+              <g fill="#5856D6">
+                <circle cx="8" cy="280" r="4"/><circle cx="66" cy="250" r="4"/>
+                <circle cx="125" cy="260" r="4"/><circle cx="183" cy="220" r="4"/>
+                <circle cx="241" cy="200" r="4"/><circle cx="300" cy="180" r="4"/>
+                <circle cx="358" cy="210" r="4"/><circle cx="416" cy="190" r="4"/>
+                <circle cx="475" cy="230" r="4"/><circle cx="533" cy="170" r="4"/>
+                <circle cx="591" cy="200" r="4"/><circle cx="650" cy="160" r="4"/>
+              </g>
+            </svg>
+          </div>
+          <div class="x-axis">
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+            <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+            <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 4. DONUT CHART (Figma SVG) -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>4. Donut Chart <span class="badge badge-indigo">Figma SVG</span></h2>
+    <div class="specs">
+      <span>160×160</span>
+      <span>Count=4, Thickness=48</span>
+      <span>Boolean Subtract arcs</span>
+      <span>Dual fill: solid + white gradient 5%→40%</span>
+      <span>Glass 3D effect</span>
+    </div>
+
+    <div class="row" style="gap:40px">
+      <!-- Light mode -->
+      <div>
+        <div class="panel-label">Light Mode</div>
+        <div class="chart-card">
+          <div class="donut-container">
+            <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M61.9355 151.281C61.3536 153.453 61.0626 154.539 61.3031 155.531C61.5039 156.359 62.0473 157.205 62.7168 157.732C63.5189 158.363 64.5462 158.536 66.6009 158.883C70.9577 159.617 75.4342 160 80 160C124.183 160 160 124.181 160 79.9969C160 38.3327 128.152 4.10722 87.4737 0.338387C85.394 0.145709 84.3542 0.0493694 83.4182 0.452399C82.6361 0.7891 81.8951 1.46469 81.4877 2.2123C81 3.10719 81 4.23109 81 6.47888L81 41.8045C81 43.9503 81 45.0232 81.3219 45.7764C81.6473 46.5377 81.9792 46.9537 82.649 47.4404C83.3117 47.9218 84.5904 48.2135 87.1479 48.7971C101.38 52.0444 112 64.7804 112 79.9969C112 97.6707 97.6731 111.998 80 111.998C79.6049 111.998 79.2114 111.991 78.8198 111.977C76.2027 111.882 74.8941 111.834 74.1304 112.128C73.3584 112.425 72.9308 112.741 72.4202 113.392C71.915 114.036 71.6373 115.072 71.0819 117.145L61.9355 151.281Z" fill="black" style="mix-blend-mode:multiply"/>
+              <path d="M61.9355 151.281C61.3536 153.453 61.0626 154.539 61.3031 155.531C61.5039 156.359 62.0473 157.205 62.7168 157.732C63.5189 158.363 64.5462 158.536 66.6009 158.883C70.9577 159.617 75.4342 160 80 160C124.183 160 160 124.181 160 79.9969C160 38.3327 128.152 4.10722 87.4737 0.338387C85.394 0.145709 84.3542 0.0493694 83.4182 0.452399C82.6361 0.7891 81.8951 1.46469 81.4877 2.2123C81 3.10719 81 4.23109 81 6.47888L81 41.8045C81 43.9503 81 45.0232 81.3219 45.7764C81.6473 46.5377 81.9792 46.9537 82.649 47.4404C83.3117 47.9218 84.5904 48.2135 87.1479 48.7971C101.38 52.0444 112 64.7804 112 79.9969C112 97.6707 97.6731 111.998 80 111.998C79.6049 111.998 79.2114 111.991 78.8198 111.977C76.2027 111.882 74.8941 111.834 74.1304 112.128C73.3584 112.425 72.9308 112.741 72.4202 113.392C71.915 114.036 71.6373 115.072 71.0819 117.145L61.9355 151.281Z" fill="black" fill-opacity="0.2" style="mix-blend-mode:overlay"/>
+              <path d="M61.9355 151.281C61.3536 153.453 61.0626 154.539 61.3031 155.531C61.5039 156.359 62.0473 157.205 62.7168 157.732C63.5189 158.363 64.5462 158.536 66.6009 158.883C70.9577 159.617 75.4342 160 80 160C124.183 160 160 124.181 160 79.9969C160 38.3327 128.152 4.10722 87.4737 0.338387C85.394 0.145709 84.3542 0.0493694 83.4182 0.452399C82.6361 0.7891 81.8951 1.46469 81.4877 2.2123C81 3.10719 81 4.23109 81 6.47888L81 41.8045C81 43.9503 81 45.0232 81.3219 45.7764C81.6473 46.5377 81.9792 46.9537 82.649 47.4404C83.3117 47.9218 84.5904 48.2135 87.1479 48.7971C101.38 52.0444 112 64.7804 112 79.9969C112 97.6707 97.6731 111.998 80 111.998C79.6049 111.998 79.2114 111.991 78.8198 111.977C76.2027 111.882 74.8941 111.834 74.1304 112.128C73.3584 112.425 72.9308 112.741 72.4202 113.392C71.915 114.036 71.6373 115.072 71.0819 117.145L61.9355 151.281Z" fill="url(#d_g0)"/>
+              <path d="M0 79.9969C0 68.0855 2.60305 56.782 7.27131 46.6244C8.14042 44.7333 8.57497 43.7878 9.39209 43.1782C10.0743 42.6694 11.0311 42.3648 11.8819 42.3856C12.901 42.4106 13.8734 42.9721 15.8183 44.095L46.4188 61.7629C48.278 62.8364 49.2077 63.3731 49.6987 64.0277C50.1956 64.6901 50.3895 65.1832 50.4767 66.0067C50.5629 66.8204 50.1773 68.0758 49.406 70.5865C48.4919 73.5619 48 76.7219 48 79.9969C48 92.2598 54.8972 102.912 65.0238 108.284C67.3433 109.515 68.5031 110.13 69.0172 110.767C69.5374 111.411 69.7488 111.896 69.8657 112.716C69.9812 113.526 69.7034 114.562 69.1478 116.636L60.0013 150.772C59.42 152.942 59.1293 154.027 58.4258 154.765C57.8387 155.382 56.9458 155.843 56.1033 155.965C55.0939 156.111 54.1182 155.749 52.1668 155.025C21.7059 143.72 0 114.393 0 79.9969Z" fill="#5856D6"/>
+              <path d="M0 79.9969C0 68.0855 2.60305 56.782 7.27131 46.6244C8.14042 44.7333 8.57497 43.7878 9.39209 43.1782C10.0743 42.6694 11.0311 42.3648 11.8819 42.3856C12.901 42.4106 13.8734 42.9721 15.8183 44.095L46.4188 61.7629C48.278 62.8364 49.2077 63.3731 49.6987 64.0277C50.1956 64.6901 50.3895 65.1832 50.4767 66.0067C50.5629 66.8204 50.1773 68.0758 49.406 70.5865C48.4919 73.5619 48 76.7219 48 79.9969C48 92.2598 54.8972 102.912 65.0238 108.284C67.3433 109.515 68.5031 110.13 69.0172 110.767C69.5374 111.411 69.7488 111.896 69.8657 112.716C69.9812 113.526 69.7034 114.562 69.1478 116.636L60.0013 150.772C59.42 152.942 59.1293 154.027 58.4258 154.765C57.8387 155.382 56.9458 155.843 56.1033 155.965C55.0939 156.111 54.1182 155.749 52.1668 155.025C21.7059 143.72 0 114.393 0 79.9969Z" fill="url(#d_g1)"/>
+              <path d="M48.0194 13.7792C47.069 11.7411 46.5938 10.7221 45.7722 10.1168C45.0862 9.61154 44.1264 9.31272 43.2749 9.33934C42.2549 9.37123 41.3561 9.89889 39.5584 10.9542C29.7675 16.702 21.3077 24.4731 14.7531 33.6933C13.5448 35.393 12.9406 36.2429 12.82 37.2562C12.7193 38.1022 12.9333 39.084 13.3769 39.8115C13.9082 40.6827 14.8821 41.245 16.83 42.3696L47.4299 60.0372C49.2875 61.1097 50.2163 61.646 51.029 61.7439C51.8502 61.8428 52.3768 61.7636 53.1325 61.4276C53.8805 61.095 54.7714 60.1362 56.5532 58.2187C57.7222 56.9606 58.9912 55.7967 60.3476 54.7397C62.4137 53.1298 63.4467 52.3248 63.8427 51.6088C64.2431 50.885 64.3675 50.3682 64.3404 49.5415C64.3136 48.7237 63.8604 47.7517 62.9539 45.8076L48.0194 13.7792Z" fill="#007AFF"/>
+              <path d="M48.0194 13.7792C47.069 11.7411 46.5938 10.7221 45.7722 10.1168C45.0862 9.61154 44.1264 9.31272 43.2749 9.33934C42.2549 9.37123 41.3561 9.89889 39.5584 10.9542C29.7675 16.702 21.3077 24.4731 14.7531 33.6933C13.5448 35.393 12.9406 36.2429 12.82 37.2562C12.7193 38.1022 12.9333 39.084 13.3769 39.8115C13.9082 40.6827 14.8821 41.245 16.83 42.3696L47.4299 60.0372C49.2875 61.1097 50.2163 61.646 51.029 61.7439C51.8502 61.8428 52.3768 61.7636 53.1325 61.4276C53.8805 61.095 54.7714 60.1362 56.5532 58.2187C57.7222 56.9606 58.9912 55.7967 60.3476 54.7397C62.4137 53.1298 63.4467 52.3248 63.8427 51.6088C64.2431 50.885 64.3675 50.3682 64.3404 49.5415C64.3136 48.7237 63.8604 47.7517 62.9539 45.8076L48.0194 13.7792Z" fill="url(#d_g2)"/>
+              <path d="M64.8569 45.1562C65.688 46.9385 66.1035 47.8296 66.6382 48.3453C67.3218 49.0045 67.8879 49.2831 68.8273 49.4226C69.562 49.5317 70.7056 49.2763 72.9927 48.7653C75.3944 48.2288 76.5952 47.9605 77.2125 47.5507C78.0037 47.0253 78.3944 46.5377 78.7346 45.651C79 44.9592 79 43.9823 79 42.0283L79 6.47888C79 4.23121 79 3.10737 78.5124 2.21251C78.105 1.46488 77.364 0.789345 76.582 0.452608C75.646 0.0495527 74.6078 0.145671 72.5315 0.337908C65.7736 0.963581 59.2594 2.42982 53.0944 4.6311C51.1345 5.33089 50.1546 5.68078 49.4756 6.44164C48.9088 7.07673 48.5215 8.00385 48.468 8.85337C48.4038 9.87112 48.8784 10.889 49.8276 12.9246L64.8569 45.1562Z" fill="#34C759"/>
+              <path d="M64.8569 45.1562C65.688 46.9385 66.1035 47.8296 66.6382 48.3453C67.3218 49.0045 67.8879 49.2831 68.8273 49.4226C69.562 49.5317 70.7056 49.2763 72.9927 48.7653C75.3944 48.2288 76.5952 47.9605 77.2125 47.5507C78.0037 47.0253 78.3944 46.5377 78.7346 45.651C79 44.9592 79 43.9823 79 42.0283L79 6.47888C79 4.23121 79 3.10737 78.5124 2.21251C78.105 1.46488 77.364 0.789345 76.582 0.452608C75.646 0.0495527 74.6078 0.145671 72.5315 0.337908C65.7736 0.963581 59.2594 2.42982 53.0944 4.6311C51.1345 5.33089 50.1546 5.68078 49.4756 6.44164C48.9088 7.07673 48.5215 8.00385 48.468 8.85337C48.4038 9.87112 48.8784 10.889 49.8276 12.9246L64.8569 45.1562Z" fill="url(#d_g3)" fill-opacity="0.4"/>
+              <defs>
+                <linearGradient id="d_g0" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="d_g1" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="d_g2" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="d_g3" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+              </defs>
+            </svg>
+            <div class="donut-legend" style="min-width:160px">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#34C759"></div>
+                <span class="legend-label">Segment 1</span>
+                <span class="legend-value">24%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#007AFF"></div>
+                <span class="legend-label">Segment 2</span>
+                <span class="legend-value">31%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#5856D6"></div>
+                <span class="legend-label">Segment 3</span>
+                <span class="legend-value">27%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#000"></div>
+                <span class="legend-label">Segment 4</span>
+                <span class="legend-value">18%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dark mode -->
+      <div>
+        <div class="panel-label">Dark Mode</div>
+        <div class="chart-card dark">
+          <div class="donut-container">
+            <svg class="donut-svg" width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M61.9355 151.281C61.3536 153.453 61.0626 154.539 61.3031 155.531C61.5039 156.359 62.0473 157.205 62.7168 157.732C63.5189 158.363 64.5462 158.536 66.6009 158.883C70.9577 159.617 75.4342 160 80 160C124.183 160 160 124.181 160 79.9969C160 38.3327 128.152 4.10722 87.4737 0.338387C85.394 0.145709 84.3542 0.0493694 83.4182 0.452399C82.6361 0.7891 81.8951 1.46469 81.4877 2.2123C81 3.10719 81 4.23109 81 6.47888L81 41.8045C81 43.9503 81 45.0232 81.3219 45.7764C81.6473 46.5377 81.9792 46.9537 82.649 47.4404C83.3117 47.9218 84.5904 48.2135 87.1479 48.7971C101.38 52.0444 112 64.7804 112 79.9969C112 97.6707 97.6731 111.998 80 111.998C79.6049 111.998 79.2114 111.991 78.8198 111.977C76.2027 111.882 74.8941 111.834 74.1304 112.128C73.3584 112.425 72.9308 112.741 72.4202 113.392C71.915 114.036 71.6373 115.072 71.0819 117.145L61.9355 151.281Z" fill="white" style="mix-blend-mode:screen"/>
+              <path d="M61.9355 151.281C61.3536 153.453 61.0626 154.539 61.3031 155.531C61.5039 156.359 62.0473 157.205 62.7168 157.732C63.5189 158.363 64.5462 158.536 66.6009 158.883C70.9577 159.617 75.4342 160 80 160C124.183 160 160 124.181 160 79.9969C160 38.3327 128.152 4.10722 87.4737 0.338387C85.394 0.145709 84.3542 0.0493694 83.4182 0.452399C82.6361 0.7891 81.8951 1.46469 81.4877 2.2123C81 3.10719 81 4.23109 81 6.47888L81 41.8045C81 43.9503 81 45.0232 81.3219 45.7764C81.6473 46.5377 81.9792 46.9537 82.649 47.4404C83.3117 47.9218 84.5904 48.2135 87.1479 48.7971C101.38 52.0444 112 64.7804 112 79.9969C112 97.6707 97.6731 111.998 80 111.998C79.6049 111.998 79.2114 111.991 78.8198 111.977C76.2027 111.882 74.8941 111.834 74.1304 112.128C73.3584 112.425 72.9308 112.741 72.4202 113.392C71.915 114.036 71.6373 115.072 71.0819 117.145L61.9355 151.281Z" fill="white" fill-opacity="0.2" style="mix-blend-mode:overlay"/>
+              <path d="M61.9355 151.281C61.3536 153.453 61.0626 154.539 61.3031 155.531C61.5039 156.359 62.0473 157.205 62.7168 157.732C63.5189 158.363 64.5462 158.536 66.6009 158.883C70.9577 159.617 75.4342 160 80 160C124.183 160 160 124.181 160 79.9969C160 38.3327 128.152 4.10722 87.4737 0.338387C85.394 0.145709 84.3542 0.0493694 83.4182 0.452399C82.6361 0.7891 81.8951 1.46469 81.4877 2.2123C81 3.10719 81 4.23109 81 6.47888L81 41.8045C81 43.9503 81 45.0232 81.3219 45.7764C81.6473 46.5377 81.9792 46.9537 82.649 47.4404C83.3117 47.9218 84.5904 48.2135 87.1479 48.7971C101.38 52.0444 112 64.7804 112 79.9969C112 97.6707 97.6731 111.998 80 111.998C79.6049 111.998 79.2114 111.991 78.8198 111.977C76.2027 111.882 74.8941 111.834 74.1304 112.128C73.3584 112.425 72.9308 112.741 72.4202 113.392C71.915 114.036 71.6373 115.072 71.0819 117.145L61.9355 151.281Z" fill="url(#d_dg0)"/>
+              <path d="M0 79.9969C0 68.0855 2.60305 56.782 7.27131 46.6244C8.14042 44.7333 8.57497 43.7878 9.39209 43.1782C10.0743 42.6694 11.0311 42.3648 11.8819 42.3856C12.901 42.4106 13.8734 42.9721 15.8183 44.095L46.4188 61.7629C48.278 62.8364 49.2077 63.3731 49.6987 64.0277C50.1956 64.6901 50.3895 65.1832 50.4767 66.0067C50.5629 66.8204 50.1773 68.0758 49.406 70.5865C48.4919 73.5619 48 76.7219 48 79.9969C48 92.2598 54.8972 102.912 65.0238 108.284C67.3433 109.515 68.5031 110.13 69.0172 110.767C69.5374 111.411 69.7488 111.896 69.8657 112.716C69.9812 113.526 69.7034 114.562 69.1478 116.636L60.0013 150.772C59.42 152.942 59.1293 154.027 58.4258 154.765C57.8387 155.382 56.9458 155.843 56.1033 155.965C55.0939 156.111 54.1182 155.749 52.1668 155.025C21.7059 143.72 0 114.393 0 79.9969Z" fill="#5856D6"/>
+              <path d="M0 79.9969C0 68.0855 2.60305 56.782 7.27131 46.6244C8.14042 44.7333 8.57497 43.7878 9.39209 43.1782C10.0743 42.6694 11.0311 42.3648 11.8819 42.3856C12.901 42.4106 13.8734 42.9721 15.8183 44.095L46.4188 61.7629C48.278 62.8364 49.2077 63.3731 49.6987 64.0277C50.1956 64.6901 50.3895 65.1832 50.4767 66.0067C50.5629 66.8204 50.1773 68.0758 49.406 70.5865C48.4919 73.5619 48 76.7219 48 79.9969C48 92.2598 54.8972 102.912 65.0238 108.284C67.3433 109.515 68.5031 110.13 69.0172 110.767C69.5374 111.411 69.7488 111.896 69.8657 112.716C69.9812 113.526 69.7034 114.562 69.1478 116.636L60.0013 150.772C59.42 152.942 59.1293 154.027 58.4258 154.765C57.8387 155.382 56.9458 155.843 56.1033 155.965C55.0939 156.111 54.1182 155.749 52.1668 155.025C21.7059 143.72 0 114.393 0 79.9969Z" fill="url(#d_dg1)"/>
+              <path d="M48.0194 13.7792C47.069 11.7411 46.5938 10.7221 45.7722 10.1168C45.0862 9.61154 44.1264 9.31272 43.2749 9.33934C42.2549 9.37123 41.3561 9.89889 39.5584 10.9542C29.7675 16.702 21.3077 24.4731 14.7531 33.6933C13.5448 35.393 12.9406 36.2429 12.82 37.2562C12.7193 38.1022 12.9333 39.084 13.3769 39.8115C13.9082 40.6827 14.8821 41.245 16.83 42.3696L47.4299 60.0372C49.2875 61.1097 50.2163 61.646 51.029 61.7439C51.8502 61.8428 52.3768 61.7636 53.1325 61.4276C53.8805 61.095 54.7714 60.1362 56.5532 58.2187C57.7222 56.9606 58.9912 55.7967 60.3476 54.7397C62.4137 53.1298 63.4467 52.3248 63.8427 51.6088C64.2431 50.885 64.3675 50.3682 64.3404 49.5415C64.3136 48.7237 63.8604 47.7517 62.9539 45.8076L48.0194 13.7792Z" fill="#007AFF"/>
+              <path d="M48.0194 13.7792C47.069 11.7411 46.5938 10.7221 45.7722 10.1168C45.0862 9.61154 44.1264 9.31272 43.2749 9.33934C42.2549 9.37123 41.3561 9.89889 39.5584 10.9542C29.7675 16.702 21.3077 24.4731 14.7531 33.6933C13.5448 35.393 12.9406 36.2429 12.82 37.2562C12.7193 38.1022 12.9333 39.084 13.3769 39.8115C13.9082 40.6827 14.8821 41.245 16.83 42.3696L47.4299 60.0372C49.2875 61.1097 50.2163 61.646 51.029 61.7439C51.8502 61.8428 52.3768 61.7636 53.1325 61.4276C53.8805 61.095 54.7714 60.1362 56.5532 58.2187C57.7222 56.9606 58.9912 55.7967 60.3476 54.7397C62.4137 53.1298 63.4467 52.3248 63.8427 51.6088C64.2431 50.885 64.3675 50.3682 64.3404 49.5415C64.3136 48.7237 63.8604 47.7517 62.9539 45.8076L48.0194 13.7792Z" fill="url(#d_dg2)"/>
+              <path d="M64.8569 45.1562C65.688 46.9385 66.1035 47.8296 66.6382 48.3453C67.3218 49.0045 67.8879 49.2831 68.8273 49.4226C69.562 49.5317 70.7056 49.2763 72.9927 48.7653C75.3944 48.2288 76.5952 47.9605 77.2125 47.5507C78.0037 47.0253 78.3944 46.5377 78.7346 45.651C79 44.9592 79 43.9823 79 42.0283L79 6.47888C79 4.23121 79 3.10737 78.5124 2.21251C78.105 1.46488 77.364 0.789345 76.582 0.452608C75.646 0.0495527 74.6078 0.145671 72.5315 0.337908C65.7736 0.963581 59.2594 2.42982 53.0944 4.6311C51.1345 5.33089 50.1546 5.68078 49.4756 6.44164C48.9088 7.07673 48.5215 8.00385 48.468 8.85337C48.4038 9.87112 48.8784 10.889 49.8276 12.9246L64.8569 45.1562Z" fill="#34C759"/>
+              <path d="M64.8569 45.1562C65.688 46.9385 66.1035 47.8296 66.6382 48.3453C67.3218 49.0045 67.8879 49.2831 68.8273 49.4226C69.562 49.5317 70.7056 49.2763 72.9927 48.7653C75.3944 48.2288 76.5952 47.9605 77.2125 47.5507C78.0037 47.0253 78.3944 46.5377 78.7346 45.651C79 44.9592 79 43.9823 79 42.0283L79 6.47888C79 4.23121 79 3.10737 78.5124 2.21251C78.105 1.46488 77.364 0.789345 76.582 0.452608C75.646 0.0495527 74.6078 0.145671 72.5315 0.337908C65.7736 0.963581 59.2594 2.42982 53.0944 4.6311C51.1345 5.33089 50.1546 5.68078 49.4756 6.44164C48.9088 7.07673 48.5215 8.00385 48.468 8.85337C48.4038 9.87112 48.8784 10.889 49.8276 12.9246L64.8569 45.1562Z" fill="url(#d_dg3)" fill-opacity="0.4"/>
+              <defs>
+                <linearGradient id="d_dg0" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="d_dg1" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="d_dg2" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="d_dg3" x1="80" y1="0" x2="80" y2="160" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+              </defs>
+            </svg>
+            <div class="donut-legend" style="min-width:160px">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#34C759"></div>
+                <span class="legend-label">Segment 1</span>
+                <span class="legend-value">24%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#007AFF"></div>
+                <span class="legend-label">Segment 2</span>
+                <span class="legend-value">31%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:#5856D6"></div>
+                <span class="legend-label">Segment 3</span>
+                <span class="legend-value">27%</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:rgba(255,255,255,0.6)"></div>
+                <span class="legend-label">Segment 4</span>
+                <span class="legend-value">18%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 5. SEMICIRCLE CHART (Figma SVG) -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>5. Semicircle Chart <span class="badge badge-indigo">Figma SVG</span></h2>
+    <div class="specs">
+      <span>360×180</span>
+      <span>Count=4, Thickness=48</span>
+      <span>Half-circle arcs</span>
+      <span>Same dual-fill glass effect</span>
+    </div>
+
+    <div class="row" style="gap:40px">
+      <div>
+        <div class="panel-label">Light Mode</div>
+        <div class="chart-card">
+          <div class="semicircle-container">
+            <svg class="semicircle-svg" width="360" height="180" viewBox="0 0 360 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M311.762 172.002C312.025 176.413 315.582 180 320 180H352C356.418 180 360.018 176.412 359.825 171.998C357.266 113.496 326.782 62.2438 281.374 31.24C277.648 28.696 272.598 29.9796 270.342 33.8867L254.288 61.6939C252.141 65.4119 253.329 70.1413 256.818 72.6424C288.203 95.1391 309.315 131.057 311.762 172.002Z" fill="black" style="mix-blend-mode:multiply"/>
+              <path d="M311.762 172.002C312.025 176.413 315.582 180 320 180H352C356.418 180 360.018 176.412 359.825 171.998C357.266 113.496 326.782 62.2438 281.374 31.24C277.648 28.696 272.598 29.9796 270.342 33.8867L254.288 61.6939C252.141 65.4119 253.329 70.1413 256.818 72.6424C288.203 95.1391 309.315 131.057 311.762 172.002Z" fill="black" fill-opacity="0.2" style="mix-blend-mode:overlay"/>
+              <path d="M311.762 172.002C312.025 176.413 315.582 180 320 180H352C356.418 180 360.018 176.412 359.825 171.998C357.266 113.496 326.782 62.2438 281.374 31.24C277.648 28.696 272.598 29.9796 270.342 33.8867L254.288 61.6939C252.141 65.4119 253.329 70.1413 256.818 72.6424C288.203 95.1391 309.315 131.057 311.762 172.002Z" fill="url(#s_g0)"/>
+              <path d="M99.2688 19.0758C95.2857 21.078 93.9364 26.0328 96.1654 29.8935L112.191 57.6512C114.373 61.4299 119.17 62.7394 123.106 60.8565C140.334 52.615 159.628 48 180 48C201.587 48 221.963 53.1817 239.953 62.3691C243.916 64.3927 248.847 63.1182 251.071 59.265L267.066 31.5612C269.263 27.7551 267.987 22.8722 264.103 20.8158C239.002 7.5262 210.38 0 180 0C150.972 0 123.549 6.8712 99.2688 19.0758Z" fill="#007AFF"/>
+              <path d="M99.2688 19.0758C95.2857 21.078 93.9364 26.0328 96.1654 29.8935L112.191 57.6512C114.373 61.4299 119.17 62.7394 123.106 60.8565C140.334 52.615 159.628 48 180 48C201.587 48 221.963 53.1817 239.953 62.3691C243.916 64.3927 248.847 63.1182 251.071 59.265L267.066 31.5612C269.263 27.7551 267.987 22.8722 264.103 20.8158C239.002 7.5262 210.38 0 180 0C150.972 0 123.549 6.8712 99.2688 19.0758Z" fill="url(#s_g1)"/>
+              <path d="M31.6462 93.0233C27.8001 90.8027 26.484 85.8633 28.9018 82.138C42.6269 60.9899 60.6714 42.9043 81.7855 29.1311C85.511 26.7008 90.4614 28.0138 92.6854 31.866L108.703 59.6087C110.892 63.4008 109.61 68.2281 105.987 70.6863C91.9972 80.1767 79.9257 92.282 70.4744 106.3C68.0212 109.939 63.1829 111.231 59.3826 109.037L31.6462 93.0233Z" fill="#32ADE6"/>
+              <path d="M31.6462 93.0233C27.8001 90.8027 26.484 85.8633 28.9018 82.138C42.6269 60.9899 60.6714 42.9043 81.7855 29.1311C85.511 26.7008 90.4614 28.0138 92.6854 31.866L108.703 59.6087C110.892 63.4008 109.61 68.2281 105.987 70.6863C91.9972 80.1767 79.9257 92.282 70.4744 106.3C68.0212 109.939 63.1829 111.231 59.3826 109.037L31.6462 93.0233Z" fill="url(#s_g2)"/>
+              <path d="M40 180C44.4183 180 47.9747 176.414 48.2382 172.004C49.2715 154.711 53.634 138.315 60.6936 123.448C62.5611 119.515 61.2479 114.733 57.4774 112.556L29.7128 96.5258C25.846 94.2933 20.8833 95.6508 18.8873 99.6449C7.92231 121.587 1.3079 146.083 0.174537 172.001C-0.0184813 176.415 3.58172 180 8 180H40Z" fill="#34C759"/>
+              <path d="M40 180C44.4183 180 47.9747 176.414 48.2382 172.004C49.2715 154.711 53.634 138.315 60.6936 123.448C62.5611 119.515 61.2479 114.733 57.4774 112.556L29.7128 96.5258C25.846 94.2933 20.8833 95.6508 18.8873 99.6449C7.92231 121.587 1.3079 146.083 0.174537 172.001C-0.0184813 176.415 3.58172 180 8 180H40Z" fill="url(#s_g3)" fill-opacity="0.4"/>
+              <defs>
+                <linearGradient id="s_g0" x1="180" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="s_g1" x1="180" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="s_g2" x1="180" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+                <linearGradient id="s_g3" x1="180" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse"><stop stop-color="white" stop-opacity="0.05"/><stop offset="1" stop-color="white" stop-opacity="0.4"/></linearGradient>
+              </defs>
+            </svg>
+            <div class="semicircle-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#007AFF"></div><span class="legend-label">Primary</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#32ADE6"></div><span class="legend-label">Cyan</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#34C759"></div><span class="legend-label">Green</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#000"></div><span class="legend-label">Dark</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 6. PROPORTION STATISTICS -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>6. Proportion Statistics <span class="badge badge-green">Static</span></h2>
+    <div class="specs">
+      <span>440×200</span>
+      <span>Layout: HORIZONTAL, gap=7</span>
+      <span>Stroke: 2px, round cap</span>
+      <span>Label: 14px Regular</span>
+      <span>Value: 32px Semi Bold</span>
+    </div>
+
+    <div class="chart-card" style="width:fit-content">
+      <div class="proportion-chart">
+        <!-- Old users 52% -->
+        <div class="proportion-series">
+          <div class="proportion-lines" style="height:100px">
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-100)"></div>
+          </div>
+          <span class="proportion-label" style="color:var(--black-100)">Old users</span>
+          <span class="proportion-value" style="color:var(--black-100)">52%</span>
+        </div>
+        <!-- New users 18% -->
+        <div class="proportion-series">
+          <div class="proportion-lines" style="height:100px">
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+            <div class="proportion-line-seg" style="background:var(--primary)"></div>
+          </div>
+          <span class="proportion-label" style="color:var(--primary)">New users</span>
+          <span class="proportion-value" style="color:var(--primary)">18%</span>
+        </div>
+        <!-- Visitors 30% -->
+        <div class="proportion-series">
+          <div class="proportion-lines" style="height:100px">
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+            <div class="proportion-line-seg" style="background:var(--black-40)"></div>
+          </div>
+          <span class="proportion-label" style="color:var(--black-40)">Visitors</span>
+          <span class="proportion-value" style="color:var(--black-40)">30%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TOKEN REFERENCE -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chart-section">
+    <h2>Token Reference</h2>
+    <table class="token-table">
+      <thead>
+        <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="swatch" style="background:#007AFF"></span>Primary</td><td>#007AFF</td><td>Primary bars, line 1, donut segment 2</td></tr>
+        <tr><td><span class="swatch" style="background:#5856D6"></span>Secondary/Indigo</td><td>#5856D6</td><td>Stacked bars, line 2, donut segment 3</td></tr>
+        <tr><td><span class="swatch" style="background:#34C759"></span>Secondary/Green</td><td>#34C759</td><td>Donut segment 4, semicircle segment 4</td></tr>
+        <tr><td><span class="swatch" style="background:#32ADE6"></span>Secondary/Cyan</td><td>#32ADE6</td><td>Interactive bar fills, semicircle segment 3</td></tr>
+        <tr><td><span class="swatch" style="background:#FF3B30"></span>Secondary/Red</td><td>#FF3B30</td><td>Donut segment 5 (5+ segments)</td></tr>
+        <tr><td><span class="swatch" style="background:#FF9500"></span>Secondary/Orange</td><td>#FF9500</td><td>Donut segment 6 (6 segments)</td></tr>
+        <tr><td><span class="swatch" style="background:#000;opacity:0.2"></span>Black/20%</td><td>#000 @ 0.2</td><td>Bar style 4 top, donut segment 1 overlay</td></tr>
+        <tr><td><span class="swatch" style="background:#000;opacity:0.1"></span>Black/10%</td><td>#000 @ 0.1</td><td>Bar style 2/3 background fill, grid lines</td></tr>
+        <tr><td>Corner radius (bar)</td><td>8px (bound token: 20 in Figma)</td><td>Bar top corners only</td></tr>
+        <tr><td>Corner radius (pill)</td><td>80px</td><td>Style 6 bars only</td></tr>
+        <tr><td>Tooltip blur</td><td>40px</td><td>BACKGROUND_BLUR on all tooltips</td></tr>
+        <tr><td>Tooltip fill</td><td>#000 @ 0.8 + White/10% inset</td><td>Glass effect dual fill</td></tr>
+        <tr><td>Line corner (Small)</td><td>2</td><td>Sharp line joins</td></tr>
+        <tr><td>Line corner (Medium)</td><td>16</td><td>Smooth line joins</td></tr>
+        <tr><td>Line corner (Big)</td><td>28</td><td>Very smooth curves</td></tr>
+        <tr><td>Dot size (Medium)</td><td>8px</td><td>Line chart data points</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>

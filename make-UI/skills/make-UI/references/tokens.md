@@ -148,6 +148,32 @@ Applies to: vector elements, components, blocks, frames, pages.
 
 ---
 
+## CHART: Line Corner Radius (3 modes: Small, Medium, Big)
+
+Local to chart components — NOT in the shared SnowUI library.
+
+| Token | Small | Medium | Big |
+|-------|-------|--------|-----|
+| Corner radius | 2 | 16 | 28 |
+
+Applies to: bar chart rectangle corners, line chart stroke caps. Small = angular/sharp joins, Medium = smooth default curves, Big = very rounded lines.
+
+---
+
+## CHART: Dot Size (3 variables × 3 modes)
+
+Local to chart components — NOT in the shared SnowUI library.
+
+| Token | Small | Medium | Big |
+|-------|-------|--------|-----|
+| Dot | 4 | 8 | 10 |
+| Dot 2 | 8 | 16 | 20 |
+| Dot 3 | 10 | 20 | 24 |
+
+Applies to: scatter chart dots, line chart data points, legend indicator dots. Use Dot for inline legends, Dot 2 for chart data points, Dot 3 for interactive/hover-enlarged points.
+
+---
+
 ## Size (3 modes: Default, Small-4, Large+4)
 
 | Token | Default | Small(-4) | Large(+4) |

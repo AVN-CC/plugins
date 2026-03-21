@@ -111,15 +111,41 @@
 
 ---
 
-## Chart
+## Chart (Two Systems)
 
-- **Variant axes**: Type(Horizontal/Vertical/Line) × Show Left Text(T/F); also Donut(2-6 segments, thickness 1-11) and Semicircle
-- **Layout**: VERTICAL stack; chart area + optional legend; gap 8-16px
-- **Sizing**: width FILL, height HUG; bar max-width 28px; 1-12 data points
-- **Slots**: Bars/lines as Strip primitives, axis labels as Text, legend as Group of Tag-like items
-- **Key tokens**: Two color themes via Themes variable: Bright Light (saturated) / Pastel Light (muted); grid lines Black/4%
-- **Design rules**: _"The chart component can be used completely independent of SnowUI."_ Bar charts use Strip primitive for segments. Line charts use stroke paths. Donut center is empty — place summary Text inside. Horizontal bars = left-to-right reading. Always include axis labels. Max 12 data points before switching to scrollable.
-- **Source**: [docs/patterns/chart.md](../../docs/patterns/chart.md)
+SnowUI has **two distinct chart systems**. They must not be mixed.
+
+### System 1: ChartMotion (Animated/Interactive)
+"Motion" = animation. The primary chart component.
+- **Variant axes**: Type(Vertical/Horizontal/Line) × Show Left Text(T/F)
+- **Layout**: HORIZONTAL auto-layout; Left Text + Frame(grid + bars + x-axis labels)
+- **Sizing**: 800×400 default; breakpoints: 400×200 (compact), 400×320 (horizontal compact); bar max-width 28px; 1-12 data points
+- **Slots**: 3 INSTANCE_SWAP slots — Vertical Bar, Horizontal Bar, Line — swap to change chart type or bar style
+- **Bar architecture**: 8 RECTANGLE segments per bar column, opacity 0→1 fill animation bottom-to-top; Height property (1-6) controls visible segments
+- **Tooltip**: #1c1c1c bg, cr=8, padding 4/8, gap=4, 12px Inter white text, opacity 0→1 on hover
+- **Animation**: Bars fill with staggered reveal (segments bottom-to-top). Tooltips fade in on hover.
+- **Line styles**: Line A (solid gradient with area fill), Line B (dashed, dashPattern [2,4]), Line 01 (composite A+B overlay)
+- **Usage**: Interactive dashboards, data exploration views, animated reports
+
+### System 2: Static Bar Styles (Swappable Collections)
+Simpler bar collections, no animation, no tooltips. Used standalone or swapped into ChartMotion.
+- **Vertical styles (01-08)**: Single rounded, stacked double, segmented 16-seg, multi-color stacked, thin segmented, waterfall, thin-line G, grouped H
+- **Horizontal styles (01-04)**: Standard, dense multi-bar, pill, dot-matrix
+- **Key characteristics**: Single rectangle per data point, NO tooltips, NO animation, NO hover states
+- **Usage**: Dashboard card compositions, static reports, chart-resource blocks, compact sparklines
+
+### Shared Components
+- **DonutChart**: Data Count=2-6 variants, 120×120, gradient arc segments via Subtract boolean ops, hidden tooltips
+- **SemicircleChart**: 250×126, 3 concentric arcs, percentage label inside
+- **ChartDot**: Property=A/B, 32×32, for line chart data points
+
+### Key tokens
+- Colors: Two themes (Bright Light / Pastel Light) via Themes variable; series use Secondary/* palette
+- Grid lines: Black/4% (thin), Black/20% (baseline)
+- Axis text: 12px/400, Black/40%, Inter
+- CHART tokens (local): Line Corner Radius (2/16/28), Dot Size (4-24px across 3 vars × 3 modes)
+- **Design rules**: _"The chart component can be used completely independent of SnowUI."_ Bar width max 28px (removable). Always include axis labels. Max 12 data points. Horizontal bars read left-to-right. Donut center is empty — place summary Text inside.
+- **Source**: [docs/patterns/chart.md](../../docs/patterns/chart.md), [docs/patterns/chart-motion.md](../../docs/patterns/chart-motion.md)
 
 ---
 
